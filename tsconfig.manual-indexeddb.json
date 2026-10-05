@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "manual-tests/indexeddb/dist",
+    "rootDir": "src",
+    "types": ["node"]
+  },
+  "include": ["src/domain/**/*.ts", "src/persistence/**/*.ts"],
+  "exclude": ["src/**/__tests__/**"]
+}

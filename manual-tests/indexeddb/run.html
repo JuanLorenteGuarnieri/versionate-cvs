@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Verificación manual — IndexedDbStore</title>
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+      .pass { color: #16a34a; }
+      .fail { color: #dc2626; font-weight: bold; }
+      pre { background: #111; color: #eee; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+      button { font-size: 1rem; padding: 0.5rem 1rem; margin-right: 0.5rem; }
+    </style>
+  </head>
+  <body>
+    <h1>IndexedDbStore — verificación manual</h1>
+    <p>
+      Ver <code>README.md</code> del proyecto, sección "Verificación manual de IndexedDbStore",
+      para el procedimiento completo (incluye recargar la página entre pasos).
+    </p>
+    <button id="step1">1. Guardar una AppDatabase de prueba</button>
+    <button id="step2">2. Cargarla de vuelta (comprobar round-trip)</button>
+    <button id="step3">3. Borrar (clear)</button>
+    <pre id="out">Pulsa el paso 1 para empezar.</pre>
+
+    <script type="module">
+      import { createIndexedDbStore, isIndexedDbAvailable } from "./dist/persistence/indexedDbStore.js";
+      import { createEmptyDatabase } from "./dist/domain/database.js";
+      import { createElement } from "./dist/domain/variants.js";
+
+      const out = document.getElementById("out");
+      function log(line, ok) {
+        const cls = ok === true ? "pass" : ok === false ? "fail" : "";
+        out.innerHTML += `<span class="${cls}">${line}</span>\n`;
+      }
+
+      const store = createIndexedDbStore();
+      log(`isIndexedDbAvailable(): ${isIndexedDbAvailable()}`, isIndexedDbAvailable());
+
+      let testDb;
+
+      document.getElementById("step1").onclick = async () => {
+        out.innerHTML = "";
+        const base = createEmptyDatabase();
+        const projectsSection = base.sections.find((s) => s.key === "projects");
+        const { db } = createElement(base, {
+          sectionId: projectsSection.id,
+          variantName: "Original",
+          fields: { title: "Prueba manual IndexedDB" },
+        });
+        testDb = db;
+        try {
+          await store.save(db);
+          log("save() completado sin errores.", true);
+          log("Ahora RECARGA esta página (F5) y pulsa el paso 2, sin pulsar el paso 1 de nuevo.");
+        } catch (err) {
+          log(`save() lanzó un error: ${err}`, false);
+        }
+      };
+
+      document.getElementById("step2").onclick = async () => {
+        try {
+          const loaded = await store.load();
+          if (!loaded) {
+            log("load() devolvió null — ¿has pulsado el paso 1 antes de recargar?", false);
+            return;
+          }
+          const hasElement = loaded.elements.some(
+            (e) => e.sectionId === loaded.sections.find((s) => s.key === "projects").id
+          );
+          log(`load() devolvió una AppDatabase con ${loaded.elements.length} elemento(s).`, true);
+          log(hasElement ? "El elemento de prueba sigue ahí tras recargar." : "No se encontró el elemento esperado.", hasElement);
+        } catch (err) {
+          log(`load() lanzó un error: ${err}`, false);
+        }
+      };
+
+      document.getElementById("step3").onclick = async () => {
+        try {
+          await store.clear();
+          const afterClear = await store.load();
+          log("clear() completado.", true);
+          log(afterClear === null ? "load() devuelve null tras clear(), correcto." : "load() debería devolver null tras clear().", afterClear === null);
+        } catch (err) {
+          log(`clear() lanzó un error: ${err}`, false);
+        }
+      };
+    </script>
+  </body>
+</html>

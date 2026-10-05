@@ -1,0 +1,423 @@
+{
+  "pageWidth": 594.95996,
+  "pageHeight": 841.91998,
+  "numPages": 3,
+  "items": [
+    {
+      "text": "PERSONAL INFORMATION",
+      "x": 45.35156061035156,
+      "y": 788.66998221875,
+      "fontSize": 8.399999500000007,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "Juan Lorente Guarnieri",
+      "x": 45.35156061035156,
+      "y": 769.919983,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "PROFILE",
+      "x": 45.35156061035156,
+      "y": 712.16998540625,
+      "fontSize": 8.399999500000007,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "Prueba",
+      "x": 45.35156061035156,
+      "y": 693.4199861875001,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "EDUCATION",
+      "x": 45.35156061035156,
+      "y": 668.6699872187501,
+      "fontSize": 8.399999500000007,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "Computer Science",
+      "x": 45.35156061035156,
+      "y": 650.66998796875,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "EXPERIENCE",
+      "x": 45.35156061035156,
+      "y": 615.4199894375,
+      "fontSize": 8.399999500000007,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "Research Intern",
+      "x": 45.35156061035156,
+      "y": 597.4199901875,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "Como investigador apliqué técnicas de aprendizaje automático para predecir los scanpaths de los espectadores en vídeos 360°,",
+      "x": 45.35156061035156,
+      "y": 573.4199911875,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "desarrollando pipelines de preprocesamiento de datos, extrayendo características basadas en saliencia y entrenando y validando",
+      "x": 45.35156061035156,
+      "y": 562.16999165625,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "modelos usando Python.",
+      "x": 45.35156061035156,
+      "y": 551.66999209375,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "LANGUAGES",
+      "x": 45.35156061035156,
+      "y": 504.41999406250005,
+      "fontSize": 8.399999500000007,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "English",
+      "x": 45.35156061035156,
+      "y": 485.66999484375003,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "PROGRAMMING LANGUAGES",
+      "x": 45.35156061035156,
+      "y": 452.66999621875004,
+      "fontSize": 8.399999500000007,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "Python",
+      "x": 45.35156061035156,
+      "y": 433.919997,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "MATLAB",
+      "x": 45.35156061035156,
+      "y": 417.41999768750003,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "C",
+      "x": 45.35156061035156,
+      "y": 400.16999840625004,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "",
+      "x": 51.26582126392402,
+      "y": 400.16999840625004,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "",
+      "x": 56.69210583782882,
+      "y": 400.16999840625004,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f1",
+      "page": 1
+    },
+    {
+      "text": "Computer Vision Engineer",
+      "x": 45.35156061035156,
+      "y": 758.66998346875,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f3",
+      "page": 1
+    },
+    {
+      "text": "https://juanlorenteguarnieri.github.io/portfolio/",
+      "x": 49.93359166943359,
+      "y": 745.16998403125,
+      "fontSize": 6.397499508437509,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Email",
+      "x": 45.35156061035156,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": ":",
+      "x": 62.49609114599609,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "juanlorenteguarnieri@gmail.com",
+      "x": 66.374997234375,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Phone",
+      "x": 175.4882776879881,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": ":",
+      "x": 195.90233933740217,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "",
+      "x": 199.78124167578125,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "34 611659219",
+      "x": 204.20064071663964,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Location",
+      "x": 253.21873944921873,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": ":",
+      "x": 280.8632732973631,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Zaragoza, España",
+      "x": 284.74217563574217,
+      "y": 733.1699845312501,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "sept 2020",
+      "x": 481.53513993603497,
+      "y": 650.66998796875,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "",
+      "x": 516.1504263937312,
+      "y": 650.66998796875,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "jun 2024",
+      "x": 521.4590085225402,
+      "y": 650.66998796875,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "University of Zaragoza",
+      "x": 45.35156061035156,
+      "y": 639.4199884375,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f3",
+      "page": 1
+    },
+    {
+      "text": "ene 2025",
+      "x": 483.8437298398437,
+      "y": 597.4199901875,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "",
+      "x": 516.3090492121219,
+      "y": 597.4199901875,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "jun 2025",
+      "x": 521.617631340931,
+      "y": 597.4199901875,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Graphics and Imaging Lab",
+      "x": 45.35156061035156,
+      "y": 586.1699906562501,
+      "fontSize": 7.994999516875006,
+      "fontName": "g_d0_f3",
+      "page": 1
+    },
+    {
+      "text": "Python",
+      "x": 49.93359166943359,
+      "y": 538.1699926562501,
+      "fontSize": 6.397499508437509,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Pytorch",
+      "x": 83.15624653515624,
+      "y": 538.1699926562501,
+      "fontSize": 6.397499508437509,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Investigación",
+      "x": 118.49999506249999,
+      "y": 538.1699926562501,
+      "fontSize": 6.397499508437509,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Machine Learning",
+      "x": 170.41405539941405,
+      "y": 538.1699926562501,
+      "fontSize": 6.397499508437509,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Virtual Reality",
+      "x": 236.57811514257813,
+      "y": 538.1699926562501,
+      "fontSize": 6.397499508437509,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Location",
+      "x": 45.35156061035156,
+      "y": 525.4199931875,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": ":",
+      "x": 72.99609070849608,
+      "y": 525.4199931875,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Zaragoza",
+      "x": 76.874996796875,
+      "y": 525.4199931875,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Level",
+      "x": 45.35156061035156,
+      "y": 473.66999534375003,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": ":",
+      "x": 62.32030990332031,
+      "y": 473.66999534375003,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "B2",
+      "x": 66.19921599169922,
+      "y": 473.66999534375003,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "",
+      "x": 76.70025700415583,
+      "y": 473.66999534375003,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    },
+    {
+      "text": "Linguaskill)",
+      "x": 79.17870382588721,
+      "y": 473.66999534375003,
+      "fontSize": 6.795000016874987,
+      "fontName": "g_d0_f2",
+      "page": 1
+    }
+  ]
+}

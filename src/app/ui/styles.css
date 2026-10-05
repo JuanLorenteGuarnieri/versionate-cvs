@@ -1,0 +1,1824 @@
+/* Paleta deliberada para una herramienta de trabajo, no una landing page:
+   gris azulado oscuro (ni negro puro ni el "cream" habitual) + un acento
+   teal apagado en vez del terracota/verde-neón por defecto. Sin capas de
+   decoración: la app existe para editar contenido, no para impresionar. */
+:root {
+  --bg: #14161a;
+  --surface: #1c1f24;
+  --surface-hover: #23262c;
+  --border: #2a2e35;
+  --text: #e8e9ea;
+  --text-muted: #9aa0a8;
+  --accent: #4f8a8b;
+  --accent-strong: #6fb1b2;
+  --danger: #e0796b;
+  --radius: 8px;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Barras de scroll con el mismo tema oscuro que el resto de la app — sin
+   esto, el navegador pinta la barra de scroll con SU tema (normalmente
+   claro), que desentonaba fuerte con el resto de la interfaz. Firefox usa
+   `scrollbar-color` (thumb, track); Chrome/Safari/Edge (motor Blink/
+   WebKit) no lo soportan y usan en su lugar los pseudo-elementos
+   `::-webkit-scrollbar*` de abajo — se necesitan las dos reglas para
+   cubrir todos los navegadores habituales. Global (no solo en los paneles
+   con scroll propio del editor) para que también se vea bien en el resto
+   de pantallas (Dashboard, Base de datos...).*/
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) var(--surface);
+}
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 999px;
+  border: 3px solid var(--surface);
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--text-muted);
+}
+::-webkit-scrollbar-corner {
+  background: var(--surface);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+}
+
+/* Foco de teclado siempre visible: no es opcional (accesibilidad). */
+:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+
+.app-status {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+.app-status--error {
+  color: var(--danger);
+}
+
+.dashboard {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+/* Mismo patrón "alto de ventana fijo + toolbar de alto fijo + cuerpo con su
+   propio scroll" que .cv-composer/.template-editor (petición explícita:
+   "un header estático como en los editores, para poder volver fácilmente")
+   — antes esta pantalla era una página normal sin más, así que el botón
+   de volver se perdía de vista al hacer scroll con una base de datos
+   larga.
+
+   IMPORTANTE: esta regla es solo para .section-panel, NO para .dashboard
+   (bug real introducido y corregido en esta misma sesión: al principio
+   quedaron agrupadas por accidente en un único selector combinado
+   ".dashboard, .section-panel { ... }", lo que le puso `overflow:hidden`
+   a TODO el Dashboard sin que su JSX tuviera un contenedor de scroll
+   interno propio — resultado: contenido más abajo de "CVs"/"Templates"
+   (como "Base de datos") quedaba recortado e inalcanzable, sin scroll
+   posible. .dashboard usa scroll de página normal de toda la vida (su
+   topbar es solo `position:sticky`, ver .dashboard__topbar), mientras que
+   .section-panel usa el esquema de alto fijo — son dos mecanismos
+   distintos y no deben compartir regla. */
+.section-panel {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.section-panel__toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.section-panel__toolbar h1 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.section-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  max-width: 640px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem 1.5rem 4rem;
+}
+
+.dashboard__subtitle {
+  color: var(--text-muted);
+  margin: 0 0 1.5rem;
+}
+
+.dashboard__section-heading {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 1.75rem 0 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dashboard__section-heading:first-of-type {
+  margin-top: 0;
+}
+.dashboard__section-heading--preserve-case {
+  /* "CVs" en mayúsculas completas se lee "CVS" (como la cadena de
+     farmacias) y pierde la distinción CV/CVs — se respeta tal cual está
+     escrito en vez de aplicar el uppercase genérico de esta clase. */
+  text-transform: none;
+}
+
+.cv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cv-list__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cv-list__open {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-align: left;
+}
+.cv-list__open:hover {
+  background: var(--surface-hover);
+}
+
+.cv-list__version {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* .cv-composer ocupa exactamente el alto de la ventana y NUNCA hace scroll
+   de página: el toolbar tiene un alto fijo (el que necesite su contenido) y
+   el resto ("__split") se reparte el alto restante — así el header queda
+   realmente estático (no solo "sticky", que aún así se movía un poco al
+   iniciar el scroll) y el panel de preview queda a "alto de ventana menos
+   alto del header" sin necesitar medirlo por JS: lo resuelve el propio
+   flexbox. Dentro de "__split", cada panel decide su propio scroll (ver
+   más abajo) — de ahí el "overflow: hidden" aquí, para que sea imposible
+   que la PÁGINA se desborde y aparezca una segunda barra de scroll.
+
+   Sin max-width aquí a propósito (a diferencia de .dashboard): el panel de
+   preview (derecha) tiene un ancho FIJO derivado de su alto (ver
+   useHeightDerivedWidth.ts y .cv-composer__split, que es quien fija la
+   pista de grid con ese ancho) y el formulario (izquierda) se lleva todo
+   el ancho que sobra — limitar el ancho total de .cv-composer solo
+   recortaría ese sobrante, nunca el ancho del preview, así que no aporta
+   nada aquí. */
+.cv-composer {
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cv-composer__toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.cv-composer__toolbar h1 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 24ch;
+}
+
+.cv-composer__controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+.cv-composer__control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Mismo esquema que .cv-composer, ver el comentario allí (sin max-width a
+   propósito). */
+.template-editor {
+  margin: 0 auto;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.template-editor__toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.template-editor__toolbar h1 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 24ch;
+}
+
+.template-editor__controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+/* display:grid en vez de flexbox (que sí era la causa del bug reportado:
+   "el ancho del preview sigue teniendo relación con el formulario"): con
+   flexbox, el ancho "auto" de la columna izquierda se calculaba a partir
+   del contenido intrínseco de los formularios (texto largo sin partir,
+   inputs anchos, etc.) — cuando ese contenido pedía más sitio del que
+   quedaba libre, flexbox reparte el "encogimiento" entre las dos columnas
+   según sus tamaños base, así que la columna derecha (ancho fijo) podía
+   verse arrastrada aunque en teoría tuviera un ancho ya calculado. Con
+   grid, la columna derecha ocupa SIEMPRE exactamente
+   `var(--panel-right-width)` px (ninguna cantidad de contenido en la
+   izquierda puede cambiar eso — grid resuelve las columnas de ancho fijo
+   ANTES de repartir el resto) y la izquierda se lleva EXACTAMENTE lo que
+   sobra (`minmax(260px, 1fr)`), sin la ambigüedad de "auto" basado en
+   contenido que tiene flexbox. El valor de `--panel-right-width` se fija
+   aquí, en el CONTENEDOR del grid (no en el panel derecho como antes),
+   porque las pistas de un grid solo se pueden definir desde el propio
+   contenedor. */
+.template-editor__split {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) var(--panel-right-width, auto);
+  gap: 2rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1.5rem;
+  overflow: hidden;
+}
+
+.template-editor__panel-left {
+  height: 100%;
+  overflow-y: auto;
+  padding: 0 0.25rem 1.5rem 0;
+}
+
+.template-editor__panel-right {
+  /* Columna, no fila: puede haber un selector ("Previsualizar con:")
+     ENCIMA del visor — con flex-direction por defecto (fila) habrían
+     quedado uno al lado del otro en vez de apilados.
+
+     El ancho ya lo decide la pista del grid (ver .template-editor__split
+     arriba) — aquí no hace falta ni `width` ni ninguna propiedad de
+     flex-shrink/grow, a diferencia del esquema anterior con flexbox. */
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.template-editor__preview-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.template-editor__group-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 1.75rem 0 0.75rem;
+}
+
+.template-editor__grid {
+  display: grid;
+  /* minmax(min(180px, 100%), 1fr): el "100%" es la salvaguarda — sin ella,
+     minmax(180px, 1fr) nunca deja que una columna baje de 180px, así que
+     si el panel izquierdo (ahora de ancho variable, ver
+     .template-editor__panel-left) se queda más estrecho que eso, el grid
+     se desborda y aparece scroll horizontal en vez de apilar en una sola
+     columna (bug real reportado). */
+  grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+  gap: 0.75rem 1rem;
+}
+
+.template-editor__color-input {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.template-editor__color-input input[type="color"] {
+  width: 2.4rem;
+  padding: 0.15rem;
+}
+.template-editor__color-input input[type="text"],
+.template-editor__color-input input:not([type="color"]) {
+  flex: 1;
+}
+
+.dashboard__import-label {
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--accent-strong);
+  padding: 0.45rem 0;
+  font-size: 0.9rem;
+  line-height: 2.2;
+}
+
+.cv-composer__split {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) var(--panel-right-width, auto);
+  gap: 2rem;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 1.5rem;
+  overflow: hidden;
+}
+
+.cv-composer__panel-left {
+  height: 100%;
+  overflow-y: auto;
+  padding: 0 0.25rem 1.5rem 0;
+}
+
+.cv-composer__panel-right {
+  /* El ancho ya lo decide la pista del grid (ver .cv-composer__split
+     arriba, mismo esquema que .template-editor__split — ahí está el
+     porqué del cambio de flexbox a grid). */
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Por debajo de este ancho, apilar en vez de partir en dos columnas
+   estrechas: el objetivo principal es desktop (§22 del contexto), pero
+   sigue siendo responsive. En este modo se renuncia al layout "alto fijo +
+   scroll propio por panel" (no tiene sentido con todo apilado en una sola
+   columna) y se vuelve al scroll de página normal de toda la vida. */
+@media (max-width: 900px) {
+  .cv-composer,
+  .template-editor {
+    height: auto;
+    overflow: visible;
+    padding-bottom: 2rem;
+  }
+  .cv-composer__toolbar,
+  .template-editor__toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: var(--bg);
+  }
+  .cv-composer__split,
+  .template-editor__split {
+    display: block;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  .cv-composer__panel-left,
+  .cv-composer__panel-right,
+  .template-editor__panel-left,
+  .template-editor__panel-right {
+    height: auto;
+    overflow: visible;
+  }
+  .cv-composer__panel-right,
+  .template-editor__panel-right {
+    /* En una sola columna apilada no tiene sentido un ancho fijo derivado
+       del alto — esto vuelve a ocupar el 100% del ancho disponible como
+       cualquier otro bloque. Con `display:block` en el contenedor (arriba)
+       ya no hay ninguna pista de grid de la que "escapar", así que basta
+       con el `width:100%` de siempre. */
+    width: 100%;
+  }
+  .preview-viewport {
+    width: 100%;
+    height: 70vh;
+  }
+}
+
+.cv-content-panel__sections,
+.cv-content-panel__unused {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cv-content-panel__heading {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin: 1.5rem 0 0.75rem;
+}
+
+.cv-content-panel__language {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.cv-content-panel__language select {
+  max-width: 220px;
+}
+.cv-content-panel__language-hint {
+  font-size: 0.75rem;
+  opacity: 0.75;
+  font-weight: normal;
+}
+
+.section-composer__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.section-composer__header h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.drag-handle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: grab;
+  padding: 0.1rem 0.3rem;
+  font-size: 1rem;
+  touch-action: none;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.sortable-row {
+  /* Sin margen propio a propósito: el espaciado lo da el contenedor flex
+     que lo envuelve (distinto para secciones que para items dentro de una
+     sección), no este primitivo genérico. */
+}
+
+.section-composer__included-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.section-composer__item-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+}
+
+.section-composer__item-row-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.section-composer__item-label {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.cv-item-edit-panel {
+  border-top: 1px dashed var(--border);
+  padding-top: 0.6rem;
+  margin-top: 0.1rem;
+}
+.cv-item-edit-panel__hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0 0 0.6rem;
+}
+.cv-item-edit-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.cv-item-edit-panel__rename-button {
+  padding: 0;
+  font-size: inherit;
+}
+.cv-item-edit-panel__saved {
+  color: var(--accent-strong);
+  font-size: 0.85rem;
+}
+
+.section-composer__available {
+  margin-top: 0.75rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--border);
+}
+
+.section-composer__available-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.section-composer__available-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+}
+
+/* El preview del CV se pinta con los colores de la TEMPLATE, no del tema
+   oscuro de la app: es un documento aparte, no parte de la interfaz. */
+.cv-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.cv-preview__page {
+  width: 210mm;
+  min-height: 297mm;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45);
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.cv-preview__section-title {
+  font-size: 1.05em;
+  margin: 0 0 0.6em;
+}
+.cv-preview__section-title--divider-line {
+  border-bottom-style: solid;
+}
+.cv-preview__section-title--divider-dots {
+  border-bottom-style: dotted;
+}
+.cv-preview__section-title--divider-none {
+  border-bottom-style: none;
+}
+
+.cv-preview__item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+}
+/* datePosition (Template.dateStyle.position): "right" es el layout de
+   siempre (space-between). Para "left"/"inline" no hace falta reordenar el
+   DOM — se consigue solo con flex-direction/justify-content. */
+.cv-preview__item-header--date-left {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+.cv-preview__item-header--date-inline {
+  justify-content: flex-start;
+}
+
+.cv-preview__dates {
+  font-size: 0.85em;
+  white-space: nowrap;
+  color: var(--cv-muted, currentColor);
+}
+
+/* Fila de "subtítulo" (p.ej. empresa en Experience) + ubicación, en la
+   MISMA línea — mismo criterio de left/right/inline que
+   .cv-preview__item-header de arriba (según dateStyle.position), para que
+   la ubicación quede alineada verticalmente bajo la fecha. Petición
+   explícita del usuario, con el layout exacto:
+     título                                             fecha
+     subtítulo (empresa)                              ubicación
+     descripción
+     tecnologías
+   Sustituye al diseño anterior (ubicación en su propia línea aparte, que
+   dejaba un hueco entre el título y el subtítulo). */
+.cv-preview__item-subheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+  margin-bottom: 0.25em;
+}
+.cv-preview__item-subheader--date-left {
+  flex-direction: row-reverse;
+  justify-content: flex-start;
+}
+.cv-preview__item-subheader--date-inline {
+  justify-content: flex-start;
+}
+
+.cv-preview__location {
+  font-size: 0.85em;
+  color: var(--cv-muted, currentColor);
+}
+
+.cv-preview__subtitle {
+  font-style: italic;
+  color: var(--cv-muted, currentColor);
+}
+
+/* Diseño alternativo de "Datos personales" (headerStyle.layout: "banner"),
+   ver BlockContent en CVPreview.tsx — nombre grande, headline debajo,
+   contacto en una única línea con "•" en vez de una lista campo a campo. */
+.cv-preview__header-banner-name {
+  margin: 0 0 0.15em;
+  line-height: 1.15;
+  font-weight: 700;
+}
+.cv-preview__header-banner-headline {
+  font-style: italic;
+  color: var(--cv-muted, currentColor);
+  margin-bottom: 0.4em;
+}
+.cv-preview__header-banner-contact {
+  font-size: 0.85em;
+  color: var(--cv-muted, currentColor);
+}
+.cv-preview__header-banner-sep {
+  color: var(--cv-muted, currentColor);
+}
+
+.cv-preview__description p {
+  margin: 0.3em 0;
+}
+.cv-preview__description a {
+  color: var(--cv-accent, currentColor);
+}
+
+/* bulletShape/bulletIndent/bulletGap (Template.bulletStyle): usa el
+   pseudo-elemento NATIVO `::marker` (con `content` personalizado para
+   poder mostrar "circle"/"dash"/"square", que no son list-style-type
+   nativos) en vez del truco anterior de `::before` con
+   `position:absolute` — bug real de ATS confirmado reproduciéndolo con
+   Playwright + pdfjs-dist: un `::before` posicionado en absoluto crea su
+   propia capa de pintado en la exportación a PDF de Chromium, igual que
+   pasaba con `opacity` (ver el fix de esa sesión), y el texto de la viñeta
+   se extraía fuera de su sitio real — "como si se renderizaran en una
+   segunda pasada", exactamente el síntoma reportado. `::marker` no tiene
+   ese problema (mismo repro, con `::marker` el texto sale en orden). Como
+   contrapartida, `::marker` no admite `width`/`padding` (limitación real
+   de la especificación CSS, no de esta app): el hueco entre la viñeta y el
+   texto se consigue con espacios (U+00A0) dentro del propio `content` en
+   vez de con un ancho fijo — es una aproximación, no un valor en píxeles
+   exacto, pero no tiene impacto en el problema de ATS que se estaba
+   arreglando. */
+.cv-preview__bullets {
+  list-style: none;
+  margin: 0.3em 0;
+  padding: 0;
+  padding-inline-start: var(--cv-bullet-indent, 10px);
+}
+.cv-preview__bullets li::marker {
+  content: var(--cv-bullet-marker, "\2022 ");
+  color: var(--cv-accent, currentColor);
+}
+
+.cv-preview__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em;
+  margin-top: 0.4em;
+}
+.cv-preview__tag {
+  display: inline-block;
+  font-size: 0.8em;
+  border: 1px solid currentColor;
+  border-radius: var(--cv-border-radius, 999px);
+  padding: 0.05em 0.6em;
+  text-decoration: none;
+}
+a.cv-preview__tag:hover {
+  text-decoration: underline;
+}
+/* Variante para cuando la píldora NO va dentro de un contenedor
+   `.cv-preview__tags` (flex, con `gap`) sino suelta en medio de una línea
+   de texto normal (sección "Skills" fusionada) — el espaciado entre
+   píldoras adyacentes se consigue con márgenes en vez de `gap`, porque
+   aquí no hay ningún flex container del que depender (ver el porqué en
+   CVPreview.tsx: es precisamente NO tener un contenedor flex lo que
+   permite que el texto se reparta en varias líneas con normalidad). El
+   margen inferior es para cuando SÍ hace falta partir en más de una
+   línea, no deja hueco pegado a la de arriba. */
+.cv-preview__tag--inline-flow {
+  margin: 0 0.35em 0.3em 0;
+}
+
+.cv-preview__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75em;
+  font-size: 0.85em;
+  color: var(--cv-muted, currentColor);
+  margin-top: 0.3em;
+}
+
+/* Sección "Projects" (petición explícita): subtítulo + enlaces en la MISMA
+   línea, separados por "•", en texto plano — SIN el estilo de píldora que
+   sí tienen las tecnologías (.cv-preview__tag, sin cambios). */
+.cv-preview__project-subtitle-line {
+  font-size: 0.95em;
+  color: var(--cv-muted, currentColor);
+  margin-bottom: 0.25em;
+}
+.cv-preview__project-subtitle-line a {
+  font-style: normal;
+}
+.cv-preview__project-link-sep {
+  color: var(--cv-muted, currentColor);
+}
+
+/* Sección "Skills" fusionada (petición explícita): una línea de texto plano
+   por campo con contenido ("Etiqueta: valores"), sin píldoras. */
+.cv-preview__skills-line {
+  margin-top: 0.3em;
+}
+.cv-preview__skills-line:first-child {
+  margin-top: 0;
+}
+
+/* Sección "Languages" (petición explícita, configurable por template vía
+   `languagesStyle.mode`/`.alignment`): 3 modos — "columns" (fila de N
+   columnas, una por idioma, valor por defecto), "row" (apiladas, como
+   cualquier otra sección) y "list" (una sola línea, ver CVPreview.tsx). La
+   alineación (`text-align`/`justify-content`) se aplica inline desde
+   CVPreview.tsx, no aquí, porque es configurable. */
+.cv-preview__language-row {
+  display: flex;
+  gap: 1.5em;
+}
+.cv-preview__language-column-list > .cv-preview__language-column {
+  margin-bottom: 0.5em;
+}
+.cv-preview__language-column-list > .cv-preview__language-column:last-child {
+  margin-bottom: 0;
+}
+.cv-preview__language-column {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.cv-preview__language-name {
+  font-weight: 600;
+}
+.cv-preview__language-level {
+  font-size: 0.85em;
+  color: var(--cv-muted, currentColor);
+}
+
+/* Visor "estático" de la preview (CVComposer y TemplateEditor): ocupa
+   exactamente el alto disponible del panel derecho (= alto de ventana
+   menos el header, resuelto por el flexbox de .cv-composer/.template-editor
+   — ver ahí), con su propio scroll interno y zoom independientes — ver
+   PreviewViewport.tsx para el porqué completo.
+   El ANCHO de este visor es simplemente el 100% de su columna — es esa
+   columna (.cv-composer__panel-right / .template-editor__panel-right) la
+   que tiene un ancho fijo (ver useHeightDerivedWidth.ts y la pista de grid
+   en .cv-composer__split/.template-editor__split), no este visor
+   directamente; así el panel izquierdo puede llevarse todo el ancho
+   restante sin dejar hueco muerto alrededor de la página. */
+.preview-viewport {
+  /* flex:1 1 auto (no height:100%): en TemplateEditor, panel-right puede
+     tener un selector encima ("Previsualizar con:") — así el visor se
+     lleva el alto que sobra después de ese selector, no el 100% del panel
+     entero (que se saldría). En CVComposer, con el visor como único hijo,
+     el resultado es el mismo. */
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+.preview-viewport__toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+.preview-viewport__zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.preview-viewport__fullscreen-button,
+.preview-viewport__zoom-button,
+.preview-viewport__zoom-level {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0.3rem 0.5rem;
+  cursor: pointer;
+}
+.preview-viewport__fullscreen-button:hover,
+.preview-viewport__zoom-button:hover,
+.preview-viewport__zoom-level:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+.preview-viewport__zoom-level {
+  min-width: 3.5rem;
+}
+
+/* Petición explícita: botón de pantalla completa que ocupa TODA la pestaña
+   del navegador (no la pantalla del sistema operativo vía la Fullscreen
+   API — deliberado, evita el permiso/gesto extra que pide esa API y el
+   salto visual de ocultar la barra de direcciones), con un botón "✕" en el
+   mismo sitio para volver atrás (ver PreviewViewport.tsx). */
+.preview-viewport--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  border-radius: 0;
+  border: none;
+}
+.preview-viewport__scroll {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 1.5rem;
+}
+.preview-viewport__sizer {
+  margin: 0 auto;
+  position: relative;
+}
+.preview-viewport__stage {
+  /* "top left", NO "top center": .preview-viewport__sizer reserva un ancho
+     de EXACTAMENTE naturalWidth*zoom (ver PreviewViewport.tsx) asumiendo
+     que el escalado ocurre desde la esquina superior izquierda del stage.
+     Con "top center" el escalado se hacía desde el centro de su propio
+     ancho SIN escalar, que no coincide con el ancho reservado por el
+     sizer salvo con zoom=1 — el resultado visual quedaba descentrado
+     (desbordando hacia la derecha) en vez de centrado por el margin:auto
+     del sizer. Bug real reportado como "el preview no queda centrado sino
+     desplazado a la derecha". */
+  transform-origin: top left;
+  width: max-content;
+}
+
+/* Impresión / exportación a PDF (§10, §18 del contexto): window.print()
+   sobre el mismo DOM que ya se ve en pantalla, así que preview y PDF son
+   literalmente el mismo documento — ver ARCHITECTURE.md §9-10. */
+@media print {
+  @page {
+    size: A4;
+    /* Los márgenes los da el padding de .cv-preview__page (== los márgenes
+       de la template), no el motor de impresión: así lo que se ve en
+       pantalla y lo que sale impreso usan exactamente los mismos números. */
+    margin: 0;
+  }
+
+  /* Aunque .cv-preview quede visible más abajo, TODO el resto del árbol
+     (incluyendo #root, que es su ancestro) sigue ocupando su espacio
+     normal en el flujo aunque esté invisible (visibility:hidden no saca
+     nada del flujo) — así que el navegador paginaba ese hueco "fantasma"
+     como páginas en blanco extra al final del PDF. Colapsar la altura de
+     #root a 0 durante la impresión lo evita. Comprobado con Playwright
+     contra la estructura real de la app (incluyendo los ancestros con
+     position:sticky de PreviewViewport, que .cv-preview usa como
+     containing block al estar en position:absolute): con esto, un CV de
+     2 páginas exporta 2 páginas, no 14. */
+  #root {
+    height: 0;
+    overflow: hidden;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+  .cv-preview,
+  .cv-preview * {
+    visibility: visible;
+  }
+  .cv-preview {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 0;
+    display: block;
+  }
+  /* .preview-viewport tiene overflow:hidden y un alto fijado por flexbox
+     (ver la regla de .preview-viewport más arriba) para el visor en
+     pantalla — sin resetear esto, recortaría el CV a un único "viewport"
+     de alto y el resto de páginas desaparecería del PDF (comprobado con
+     Playwright: sin este reset, un CV de 2 páginas exportaba solo 1).
+     .cv-preview ya no necesita a .preview-viewport como containing block
+     durante la impresión (vuelve a posicionarse respecto a la página, ver
+     arriba), así que es seguro quitarle aquí el position/overflow/flex/
+     aspect-ratio y dejarlo fluir a su alto natural. */
+  .preview-viewport,
+  .preview-viewport__scroll,
+  .preview-viewport__sizer {
+    position: static;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    display: block;
+  }
+  /* Reseteo explícito de las propiedades que .preview-viewport usa en
+     pantalla para su tamaño (ver la regla no-print más arriba): con
+     display:block ya no deberían tener efecto, pero se anulan aquí sin
+     ambigüedad para no depender de esa interacción. */
+  .preview-viewport {
+    aspect-ratio: auto;
+    flex: none;
+    max-width: none;
+    width: auto;
+  }
+  /* El ancho fijo vive en la pista de grid del CONTENEDOR
+     (.cv-composer__split/.template-editor__split), no en este panel — mismo
+     reseteo defensivo que arriba, por si acaso, aunque #root ya
+     colapsa a alto 0 y .cv-preview se posiciona aparte durante la
+     impresión (ver más abajo), así que esto no debería llegar a importar. */
+  .cv-composer__panel-right,
+  .template-editor__panel-right {
+    width: auto;
+    height: auto;
+  }
+  /* El zoom en pantalla de PreviewViewport (Ctrl +/-) es solo para
+     visualizar — el PDF exportado siempre debe salir a tamaño real,
+     pase lo que pase con el zoom que tuvieras puesto en ese momento. */
+  .preview-viewport__stage {
+    transform: none !important;
+    width: auto !important;
+  }
+
+  .cv-preview__page {
+    box-shadow: none;
+    break-after: page;
+    page-break-after: always;
+  }
+  .cv-preview__page:last-child {
+    break-after: auto;
+    page-break-after: auto;
+  }
+
+  /* Un item nunca se parte entre dos páginas (§18: "elementos partidos de
+     manera incorrecta"). El propio JS de paginación ya evita esto también
+     al calcular los saltos, pero esta regla es la red de seguridad del
+     motor de impresión del navegador si algo se le escapara. */
+  .cv-preview__item {
+    break-inside: avoid;
+  }
+  .cv-preview__section-title {
+    break-after: avoid;
+  }
+  /* Misma red de seguridad para la fila de columnas de "Languages" y el
+     bloque de "Skills" fusionado — no son `.cv-preview__item` (tienen su
+     propio layout, ver CVPreview.tsx) pero también deben tratarse como
+     atómicos de cara a la paginación. */
+  .cv-preview__language-row,
+  .cv-preview__language-column-list,
+  .cv-preview__skills {
+    break-inside: avoid;
+  }
+}
+
+.section-composer {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.section-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-list__item {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-align: left;
+}
+.section-list__item:hover {
+  background: var(--surface-hover);
+}
+
+.section-list__count {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty-state {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.element-list {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.element-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+}
+
+.element-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+.element-card__label {
+  font-weight: 600;
+  margin-right: auto;
+}
+
+.element-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.entity-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.entity-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  /* Como celda de .template-editor__grid, un grid item mide por defecto
+     min-width:auto (= el ancho mínimo de su contenido) — con un <select> o
+     <input> algo largos dentro, eso puede ser más ancho que la propia
+     columna y desbordar el grid entero horizontalmente. min-width:0 deja
+     que encoja de verdad hasta el ancho real de la columna. */
+  min-width: 0;
+}
+.entity-form__field select,
+.entity-form__field input:not([type="checkbox"]),
+.entity-form__field textarea {
+  /* Sin esto, un <select> se dimensiona por defecto a su opción más larga
+     (p.ej. "Banner (nombre grande + contacto en una línea)"), no al ancho
+     de la columna — así se queda al ancho real disponible en vez de forzar
+     scroll horizontal. */
+  width: 100%;
+  min-width: 0;
+}
+
+.entity-form__actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.daterange-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.daterange-input input[type="date"] {
+  min-width: 0;
+  flex: 1 1 130px;
+}
+
+.linklist-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.linklist-input__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.linklist-input__row input[type="text"] {
+  flex: 1 1 35%;
+  min-width: 0;
+}
+.linklist-input__row input[type="url"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.richtext-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.richtext-input__hint {
+  font-size: 0.75rem;
+  opacity: 0.65;
+}
+
+input,
+textarea,
+select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 0.5rem 0.6rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+input[type="checkbox"] {
+  width: auto;
+}
+
+button {
+  font-family: inherit;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #06110f;
+  border: none;
+  padding: 0.55rem 1rem;
+  font-weight: 600;
+}
+.primary-button:hover {
+  background: var(--accent-strong);
+}
+
+.secondary-button {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 0.55rem 1rem;
+}
+.secondary-button:hover {
+  background: var(--surface-hover);
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--accent-strong);
+  padding: 0.25rem 0;
+}
+.link-button--danger {
+  color: var(--danger);
+}
+.cv-composer__rename-button {
+  margin-left: -0.5rem;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+.cv-composer__rename-button:hover {
+  opacity: 1;
+}
+
+.dashboard__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pdf-import {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.job-match {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.job-match__subtitle {
+  color: var(--text-muted);
+  margin: 0.25rem 0 1.5rem;
+}
+
+.job-match__textarea {
+  width: 100%;
+  min-height: 320px;
+  padding: 0.75rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  resize: vertical;
+  margin-bottom: 1rem;
+}
+
+.job-match__advanced-toggle {
+  margin-bottom: 0.75rem;
+}
+.job-match__advanced {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+.job-match__advanced label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.job-match__advanced input {
+  width: 5rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.job-match__category-scores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.job-match__category-score {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+.job-match__category-score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+.job-match__category-score-number {
+  font-size: 1.1rem;
+}
+.job-match__category-score p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.job-match__keywords {
+  margin-bottom: 1.25rem;
+}
+.job-match__keywords h3 {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+.job-match__keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.job-match__keyword-chip {
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.job-match__other-options {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border);
+}
+
+.job-match__language-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.job-match__keywords-hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.job-match__keyword-chip--tech {
+  border-color: var(--accent-strong);
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.job-match__item-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.job-match__variant-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.35rem 0 0 1.9rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+.job-match__variant-picker select {
+  font-size: 0.8rem;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.job-match__score {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  margin-bottom: 1.25rem;
+}
+.job-match__score-number {
+  font-size: 2.25rem;
+  font-weight: 700;
+  min-width: 5rem;
+  text-align: center;
+}
+.job-match__score-label {
+  font-weight: 600;
+}
+.job-match__score-hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.job-match__name-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+.job-match__name-field input {
+  font-size: 1rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.job-match__section {
+  border-top: 1px solid var(--border);
+  padding: 1rem 0;
+}
+.job-match__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.job-match__section-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.job-match__badge {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+}
+.job-match__toggle-all {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.job-match__item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+}
+.job-match__item-label {
+  font-weight: 600;
+}
+.job-match__item-reason {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.job-match__item-impact {
+  color: var(--accent-strong);
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 0.15rem;
+}
+
+.pdf-import__subtitle {
+  color: var(--text-muted);
+  margin: 0.25rem 0 1.5rem;
+}
+
+.pdf-import__file-picker {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+}
+
+.pdf-import__section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.pdf-import__section-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.pdf-import__entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border);
+}
+.pdf-import__entry:first-of-type {
+  border-top: none;
+}
+.pdf-import__entry-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.pdf-import__entry-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding-left: 1.5rem;
+}
+.pdf-import__dedup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding-left: 1.5rem;
+}
+
+.pdf-import__style {
+  margin-top: 1.5rem;
+}
+.pdf-import__style-summary {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+.pdf-import__create-template {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.dashboard__topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  /* El margin-top negativo cancela el padding-top de 2rem de .dashboard:
+     sin él, esta barra tiene que "viajar" esos 2rem antes de engancharse a
+     top:0, así que al hacer scroll se veía moverse un poco antes de
+     quedarse fija — con esto queda pegada arriba desde el primer píxel de
+     scroll (bug real, reportado como "el header se scrolea un poco"). */
+  margin: -2rem -1.5rem 0.5rem;
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard__utility-links {
+  display: flex;
+  gap: 1rem;
+  flex-shrink: 0;
+  padding-top: 0.25rem;
+}
+
+.trash-screen,
+.history-screen {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.trash-list,
+.history-list {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.trash-list__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+}
+
+.trash-list__meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+}
+
+.trash-list__actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.history-list__item {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+.history-list__item:last-child {
+  border-bottom: none;
+}
+
+.history-list__time {
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-size: 0.8rem;
+}
+
+.ats-screen {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.ats-screen__subtitle {
+  color: var(--text-muted);
+  margin: 0.25rem 0 1.5rem;
+}
+
+.ats-screen__hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0.35rem 0 0;
+}
+
+.ats-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.ats-section h2 {
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+}
+.ats-section textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ats-check {
+  margin: 0.4rem 0;
+  font-size: 0.9rem;
+}
+.ats-check--ok {
+  color: var(--accent-strong);
+}
+.ats-check--warning {
+  color: var(--danger);
+}
+
+.ats-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.ats-comparison h3 {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.ats-keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.ats-keyword {
+  font-size: 0.8rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--border);
+}
+.ats-keyword--present {
+  color: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+.ats-keyword--missing {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.ats-category-keywords {
+  margin-bottom: 0.75rem;
+}
+.ats-category-keywords h4 {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0 0 0.35rem;
+}
+
+.ats-match-score,
+.ats-comparison__full-width {
+  grid-column: 1 / -1;
+}
+.ats-match-score {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+.ats-match-score__number {
+  font-size: 2.25rem;
+  font-weight: 700;
+  min-width: 5rem;
+  text-align: center;
+}
+.ats-match-score__label {
+  font-weight: 600;
+}
+.ats-match-score__hint {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.ats-improvement-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.ats-improvement {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .ats-comparison {
+    grid-template-columns: 1fr;
+  }
+}
