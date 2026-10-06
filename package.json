@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc --project tsconfig.app.json && vite build",
     "preview": "vite preview",
-    "test": "tsx --test \"src/**/*.test.ts\" --passWithNoTests",
+    "test": "node run-tests.mjs",
     "typecheck": "tsc --noEmit",
     "typecheck:app": "tsc --project tsconfig.app.json --noEmit",
     "manual:indexeddb:build": "tsc --project tsconfig.manual-indexeddb.json"
