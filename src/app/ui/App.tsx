@@ -45,7 +45,7 @@ export function App() {
   return (
     <UILanguageProvider>
       <div className="app">
-        <LanguageSelector />
+        <LanguageSelector floating />
         <Dashboard appStore={appStore} db={state.db!} />
       </div>
     </UILanguageProvider>

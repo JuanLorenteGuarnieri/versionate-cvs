@@ -8,6 +8,7 @@ import { CVPreview } from "./CVPreview.js";
 import { PreviewViewport } from "./PreviewViewport.js";
 import { sortAlpha } from "../sortAlpha.js";
 import { useHeightDerivedWidth } from "../useHeightDerivedWidth.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 /**
  * Fase 6 del plan: editor estilo Overleaf. Izquierda = formularios de
@@ -42,6 +43,7 @@ export function CVComposer({
   onEditTemplate: (templateId: string, contextCvVersionId?: string) => void;
   onAnalyzeAts: (cvVersionId: string) => void;
 }) {
+  const { t } = useUILanguage();
   const version = db.cvVersions.find((v) => v.id === cvProject.activeVersionId);
   const { ref: panelRightRef, width: panelRightWidth } = useHeightDerivedWidth<HTMLDivElement>();
   const template = version ? db.templates.find((t) => t.id === version.templateId) : undefined;
@@ -49,7 +51,7 @@ export function CVComposer({
 
   function handleCreateVersion() {
     const suggested = version ? suggestNextLabel(version.label) : "v2";
-    const label = window.prompt("Nombre para la nueva versión:", suggested);
+    const label = window.prompt(t("newVersionPrompt"), suggested);
     if (!label) return;
     appStore.createNewCVVersion(cvProject.id, label);
   }
@@ -76,16 +78,16 @@ export function CVComposer({
   function handleDeleteVersion() {
     if (!version) return;
     if (cvProject.versionIds.length <= 1) {
-      window.alert("No puedes eliminar la única versión de un CV. Elimina el CV completo en su lugar.");
+      window.alert(t("lastCvVersionDeleteAlert"));
       return;
     }
-    if (!window.confirm(`¿Enviar la versión "${version.label}" a la papelera?`)) return;
+    if (!window.confirm(`${t("trashVersionConfirmPrefix")}${version.label}${t("trashVersionConfirmSuffix")}`)) return;
     appStore.trashCvVersion(version.id);
   }
 
   /** Antes no había ninguna forma de cambiar el nombre de un CV tras crearlo. */
   function handleRename() {
-    const name = window.prompt("Nuevo nombre para este CV:", cvProject.name);
+    const name = window.prompt(t("newCvNamePrompt"), cvProject.name);
     if (!name) return;
     try {
       appStore.renameCvProject(cvProject.id, name);
@@ -97,7 +99,7 @@ export function CVComposer({
   /** Igual que handleRename, pero para el label de la VERSIÓN ("v1", "v2"...), no del CV entero. */
   function handleRenameVersion() {
     if (!version) return;
-    const label = window.prompt("Nuevo nombre para esta versión:", version.label);
+    const label = window.prompt(t("newVersionNamePrompt"), version.label);
     if (!label) return;
     try {
       appStore.renameCvVersion(version.id, label);
@@ -134,14 +136,14 @@ export function CVComposer({
     <div className="cv-composer">
       <div className="cv-composer__toolbar">
         <button className="link-button" onClick={onBack}>
-          ← Todos los CVs
+          {t("allCvs")}
         </button>
         <h1>{cvProject.name}</h1>
         <button
           className="link-button cv-composer__rename-button"
           onClick={handleRename}
-          title="Cambiar el nombre de este CV"
-          aria-label="Cambiar el nombre de este CV"
+          title={t("renameCvTitle")}
+          aria-label={t("renameCvTitle")}
         >
           ✎
         </button>
@@ -149,7 +151,7 @@ export function CVComposer({
         {version && (
           <div className="cv-composer__controls">
             <label className="cv-composer__control">
-              <span>Versión:</span>
+              <span>{t("versionLabel")}</span>
               <select
                 value={cvProject.activeVersionId}
                 onChange={(e) => appStore.setActiveVersion(cvProject.id, e.target.value)}
@@ -166,21 +168,21 @@ export function CVComposer({
                 ))}
               </select>
             </label>
-            <button className="link-button" onClick={handleRenameVersion} title="Cambiar el nombre de esta versión">
+            <button className="link-button" onClick={handleRenameVersion} title={t("renameVersionTitle")} aria-label={t("renameVersionTitle")}>
               ✎
             </button>
             <button className="link-button" onClick={handleSaveNow} disabled={saveState === "saving"}>
-              {saveState === "saving" ? "Guardando…" : saveState === "saved" ? "Guardado ✓" : "Guardar"}
+              {saveState === "saving" ? t("saving") : saveState === "saved" ? t("saved") : t("save")}
             </button>
             <button className="link-button" onClick={handleCreateVersion}>
-              Guardar como nueva versión
+              {t("saveAsNewVersion")}
             </button>
             <button className="link-button link-button--danger" onClick={handleDeleteVersion}>
-              Eliminar esta versión
+              {t("deleteThisVersion")}
             </button>
 
             <label className="cv-composer__control">
-              <span>Template:</span>
+              <span>{t("templateLabel")}</span>
               <select
                 value={version.templateId}
                 onChange={(e) => appStore.setCvTemplate(version.id, e.target.value)}
@@ -194,25 +196,25 @@ export function CVComposer({
             </label>
             {template && (
               <button className="link-button" onClick={() => onEditTemplate(template.id, version.id)}>
-                Editar
+                {t("editTemplate")}
               </button>
             )}
 
             <button className="secondary-button" onClick={() => onAnalyzeAts(version.id)}>
-              Analizar ATS
+              {t("analyzeAts")}
             </button>
             <button className="primary-button" onClick={handleExportPdf}>
-              Exportar a PDF
+              {t("exportPdf")}
             </button>
           </div>
         )}
       </div>
 
       {!version ? (
-        <p className="app-status app-status--error">No se encontró la versión activa de este CV.</p>
+        <p className="app-status app-status--error">{t("activeVersionNotFound")}</p>
       ) : !template ? (
         <p className="app-status app-status--error">
-          Esta versión no tiene una template válida (puede que se haya enviado a la papelera).
+          {t("invalidTemplateForVersion")}
         </p>
       ) : (
         <div

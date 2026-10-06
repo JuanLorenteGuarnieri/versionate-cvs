@@ -11,11 +11,12 @@ import {
   type ScoreCategory,
 } from "../../../domain/jobMatching.js";
 import { useUILanguage } from "../UILanguageContext.js";
+import { ScreenHeader } from "./ScreenHeader.js";
 
-const CATEGORY_LABELS: Record<ScoreCategory, string> = {
-  education: "Educación",
-  technologies: "Tecnologías / Herramientas",
-  experience: "Experiencia",
+const CATEGORY_KEYS: Record<ScoreCategory, string> = {
+  education: "education",
+  technologies: "technologiesTools",
+  experience: "experience",
 };
 
 /**
@@ -59,10 +60,7 @@ export function AtsScreen({
 
   return (
     <main className="ats-screen">
-      <button className="link-button" onClick={onBack}>
-        {t("back")}
-      </button>
-      <h1>{t("atsScreenTitle")}</h1>
+      <ScreenHeader title={t("atsScreenTitle")} onBack={onBack} />
       <p className="ats-screen__subtitle">
         {t("atsScreenSubtitle")}
       </p>
@@ -176,7 +174,7 @@ export function AtsScreen({
         ) : (
           report.keywordStuffing.map((f) => (
             <p key={f.term} className="ats-check ats-check--warning">
-              ⚠ "{f.term}" {t("atsKeywordDensityWarningAppears")} {f.count} {t("atsKeywordDensityWarningTimesStart")} {f.percentOfWords} {t("atsKeywordDensityWarningTimesEnd")}
+              ⚠ "{f.term}" {t("atsKeywordDensityWarningAppears")} {f.count}{t("atsKeywordDensityWarningTimesStart")} {f.percentOfWords} {t("atsKeywordDensityWarningTimesEnd")}
             </p>
           ))
         )}
@@ -199,7 +197,7 @@ export function AtsScreen({
       </section>
 
       <section className="ats-section">
-        <h2>Comparar con una oferta de trabajo</h2>
+        <h2>{t("atsCompareOfferHeading")}</h2>
         {wasAutoFilled && (
           <p className="empty-state">
             {t("atsJobOfferAutoFilledNotice")}
@@ -224,7 +222,7 @@ export function AtsScreen({
               </div>
             </div>
             <div>
-              <h3>Presentes en tu CV ({comparison.presentInCv.length})</h3>
+              <h3>{t("atsPresentInCv")} ({comparison.presentInCv.length})</h3>
               <div className="ats-keyword-list">
                 {comparison.presentInCv.length === 0 && <span className="empty-state">{t("atsKeywordListNone")}</span>}
                 {comparison.presentInCv.map((k) => (
@@ -235,7 +233,7 @@ export function AtsScreen({
               </div>
             </div>
             <div>
-              <h3>Ausentes de tu CV ({comparison.missingFromCv.length})</h3>
+              <h3>{t("atsMissingFromCv")} ({comparison.missingFromCv.length})</h3>
               <div className="ats-keyword-list">
                 {comparison.missingFromCv.length === 0 && <span className="empty-state">{t("atsMissingKeywordListNone")}</span>}
                 {comparison.missingFromCv.map((k) => (
@@ -246,13 +244,13 @@ export function AtsScreen({
               </div>
             </div>
             <div className="ats-comparison__full-width">
-              <h3>Presentes/ausentes por categoría</h3>
+              <h3>{t("atsPresentMissingCategory")}</h3>
               {categorizedKeywords &&
-                (Object.keys(CATEGORY_LABELS) as ScoreCategory[]).map((category) => {
+                (Object.keys(CATEGORY_KEYS) as ScoreCategory[]).map((category) => {
                   const cat = categorizedKeywords[category];
                   return (
                     <div key={category} className="ats-category-keywords">
-                      <h4>{CATEGORY_LABELS[category]}</h4>
+                      <h4>{t(CATEGORY_KEYS[category])}</h4>
                       <div className="ats-keyword-list">
                         {cat.present.length === 0 && cat.missing.length === 0 && (
                           <span className="empty-state">{t("atsCategoryKeywordListNone")}</span>
@@ -273,12 +271,10 @@ export function AtsScreen({
                 })}
             </div>
             <div className="ats-comparison__full-width">
-              <h3>Cómo mejorar la puntuación</h3>
+              <h3>{t("atsImproveScoreTitle")}</h3>
               {improvements.length === 0 ? (
                 <p className="empty-state">
-                  No se ha encontrado ningún otro elemento de tu base de datos que cubra keywords que
-                  te falten — puede que ya estés usando lo mejor que tienes para esta oferta, o que no
-                  haya nada más en tu base de datos relacionado con ella.
+                  {t("atsNoSuggestions")}
                 </p>
               ) : (
                 <ul className="ats-improvement-list">
@@ -286,16 +282,14 @@ export function AtsScreen({
                     <li key={i} className="ats-improvement">
                       {s.type === "add" ? (
                         <>
-                          Añade <strong>"{s.suggestedLabel}"</strong> a {s.sectionTitle}
+                          {t("atsImprovementAddPrefix")}<strong>{s.suggestedLabel}</strong>{t("atsImprovementAddMiddle")}{s.sectionTitle}
                         </>
                       ) : (
                         <>
-                          En {s.sectionTitle}, sustituye <strong>"{s.removedLabel}"</strong> por{" "}
-                          <strong>"{s.suggestedLabel}"</strong>
+                          {t("atsImprovementReplacePrefix")}{s.sectionTitle}{t("atsImprovementReplaceMiddle")}<strong>{s.removedLabel}</strong>{t("atsImprovementReplaceWith")}<strong>{s.suggestedLabel}</strong>
                         </>
                       )}{" "}
-                      — cubriría {s.newKeywords.length} keyword{s.newKeywords.length === 1 ? "" : "s"} que
-                      ahora mismo no aparece{s.newKeywords.length === 1 ? "" : "n"} en tu CV: {s.newKeywords.join(", ")}.
+                      {t("atsImprovementCovers")}{s.newKeywords.length}{t(s.newKeywords.length === 1 ? "atsMissingKeywordOne" : "atsMissingKeywordMany")}{s.newKeywords.join(", ")}.
                     </li>
                   ))}
                 </ul>

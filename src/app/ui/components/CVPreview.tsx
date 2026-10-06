@@ -7,6 +7,7 @@ import { localeForDisplayLanguage, translateDefaultLabel } from "../../../domain
 import { flattenSectionsToBlocks, computeBlockSpacing, type PreviewBlock } from "../../../domain/previewBlocks.js";
 import { paginate, mmToPx, type PaginationBlock } from "../../../domain/pagination.js";
 import { RichTextView } from "./RichTextView.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 const A4_HEIGHT_MM = 297;
 
@@ -101,6 +102,7 @@ export function CVPreview({
    */
   templateOverride?: Template;
 }) {
+  const { t } = useUILanguage();
   const resolved = resolveCV(db, cvVersionId);
   const template = templateOverride ?? resolved.template;
   // El idioma vive en la VERSIÓN, no en la template (a propósito — ver
@@ -220,8 +222,7 @@ export function CVPreview({
   if (!template) {
     return (
       <p className="app-status app-status--error">
-        Esta versión no tiene una template válida (puede que se haya enviado a la papelera).
-        Restáurala desde la papelera o crea un CV nuevo.
+        {t("previewTemplateMissing")}{" "}{t("previewTemplateMissingHint")}
       </p>
     );
   }
@@ -273,9 +274,9 @@ export function CVPreview({
 
   if (blocks.length === 0) {
     return (
-      <div className="cv-preview">
+      <div className="cv-preview" dir="ltr">
         <div className="cv-preview__page" style={pageStyle}>
-          <p className="empty-state">Todavía no hay contenido visible en este CV. Vuelve a "Contenido" y marca algo.</p>
+          <p className="empty-state">{t("noVisibleCvContent")}</p>
         </div>
       </div>
     );
@@ -294,7 +295,7 @@ export function CVPreview({
     ];
 
   return (
-    <div className="cv-preview" ref={previewRootRef}>
+    <div className="cv-preview" dir="ltr" ref={previewRootRef}>
       {pagesToRender.map((pageBlocks, pageIndex) => (
         <div key={pageIndex} className="cv-preview__page" style={pageStyle}>
           {pageBlocks.map((pb) => {

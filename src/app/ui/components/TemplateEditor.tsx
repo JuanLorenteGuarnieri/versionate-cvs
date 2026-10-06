@@ -5,6 +5,7 @@ import { CVPreview } from "./CVPreview.js";
 import { PreviewViewport } from "./PreviewViewport.js";
 import { sortAlpha } from "../sortAlpha.js";
 import { useHeightDerivedWidth } from "../useHeightDerivedWidth.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 /** Fuentes seguras del sistema (sin depender de ninguna carga externa —
  * la app es 100% local, §13/§24 del contexto). El primer nombre de cada
@@ -77,6 +78,7 @@ export function TemplateEditor({
   initialPreviewVersionId?: string;
   onBack: () => void;
 }) {
+  const { t } = useUILanguage();
   const [draft, setDraft] = useState<Template>(template);
   const [previewVersionId, setPreviewVersionId] = useState<string>(
     (initialPreviewVersionId && db.cvVersions.some((v) => v.id === initialPreviewVersionId)
@@ -99,7 +101,7 @@ export function TemplateEditor({
   }
 
   function handleSaveAsNew() {
-    const name = window.prompt("Nombre para la nueva template:", `${draft.name} (copia)`);
+    const name = window.prompt(t("templateSaveAsNewPrompt"), `${draft.name}${t("templateSaveNewDefaultSuffix")}`);
     if (!name) return;
     const { id, createdAt, derivedFromTemplateId, ...patch } = draft;
     appStore.forkTemplate(template.id, name, patch);
@@ -110,11 +112,10 @@ export function TemplateEditor({
     const refs = appStore.findReferences("template", template.id);
     if (refs.length > 0) {
       const proceed = window.confirm(
-        `Esta template se usa en ${refs.length} CV(s). Si continúas, esos CVs quedarán con una ` +
-          "referencia rota hasta que la restaures. ¿Enviar a la papelera de todas formas?"
+        `${t("templateDeleteReferencesPrefix")}${refs.length}${t("templateDeleteReferencesSuffix")}`
       );
       if (!proceed) return;
-    } else if (!window.confirm(`¿Enviar "${template.name}" a la papelera?`)) {
+    } else if (!window.confirm(`${t("templateDeleteConfirmPrefix")}${template.name}${t("templateDeleteConfirmSuffix")}`)) {
       return;
     }
     appStore.trashTemplate(template.id);
@@ -129,18 +130,18 @@ export function TemplateEditor({
     <div className="template-editor">
       <div className="template-editor__toolbar">
         <button className="link-button" onClick={onBack}>
-          ← Todas las templates
+          {t("allTemplates")}
         </button>
         <h1>{template.name}</h1>
         <div className="template-editor__controls">
           <button className="link-button" onClick={handleSave}>
-            Guardar
+            {t("save")}
           </button>
           <button className="link-button" onClick={handleSaveAsNew}>
-            Guardar como nueva template
+            {t("saveAsNewTemplate")}
           </button>
           <button className="link-button link-button--danger" onClick={handleDelete}>
-            Eliminar
+            {t("delete")}
           </button>
         </div>
       </div>
@@ -151,14 +152,14 @@ export function TemplateEditor({
       >
         <div className="template-editor__panel-left">
           <label className="entity-form__field">
-            <span>Nombre</span>
+            <span>{t("name")}</span>
             <input value={draft.name} onChange={(e) => set("name", e.target.value)} />
           </label>
 
-          <h2 className="template-editor__group-title">Tipografía</h2>
+          <h2 className="template-editor__group-title">{t("typography")}</h2>
           <div className="template-editor__grid">
             <label className="entity-form__field">
-              <span>Familia de fuente</span>
+              <span>{t("fontFamily")}</span>
               <select
                 value={draft.typography.fontFamily}
                 onChange={(e) => set("typography", { ...draft.typography, fontFamily: e.target.value })}
@@ -171,7 +172,7 @@ export function TemplateEditor({
               </select>
             </label>
             <label className="entity-form__field">
-              <span>Tamaño base (pt)</span>
+              <span>{t("baseFontSize")}</span>
               <input
                 type="number"
                 step="0.5"
@@ -180,7 +181,7 @@ export function TemplateEditor({
               />
             </label>
             <label className="entity-form__field">
-              <span>Interlineado</span>
+              <span>{t("lineSpacing")}</span>
               <input
                 type="number"
                 step="0.05"
@@ -189,7 +190,7 @@ export function TemplateEditor({
               />
             </label>
             <label className="entity-form__field">
-              <span>Escala de títulos</span>
+              <span>{t("headingScaleLabel")}</span>
               <input
                 type="number"
                 step="0.05"
@@ -198,7 +199,7 @@ export function TemplateEditor({
               />
             </label>
             <label className="entity-form__field">
-              <span>Grosor del texto base</span>
+              <span>{t("baseTextWeight")}</span>
               <select
                 value={draft.typography.fontWeight}
                 onChange={(e) => set("typography", { ...draft.typography, fontWeight: Number(e.target.value) })}
@@ -211,7 +212,7 @@ export function TemplateEditor({
               </select>
             </label>
             <label className="entity-form__field">
-              <span>Grosor de títulos</span>
+              <span>{t("headingWeight")}</span>
               <select
                 value={draft.typography.headingWeight}
                 onChange={(e) => set("typography", { ...draft.typography, headingWeight: Number(e.target.value) })}
@@ -224,18 +225,18 @@ export function TemplateEditor({
               </select>
             </label>
             <label className="entity-form__field">
-              <span>Mayúsculas de títulos</span>
+              <span>{t("headingCase")}</span>
               <select
                 value={draft.typography.headingCase}
                 onChange={(e) => set("typography", { ...draft.typography, headingCase: e.target.value as HeadingCase })}
               >
-                <option value="none">Normal</option>
-                <option value="uppercase">MAYÚSCULAS</option>
-                <option value="capitalize">Cada Palabra</option>
+                <option value="none">{t("normalCase")}</option>
+                <option value="uppercase">{t("uppercase")}</option>
+                <option value="capitalize">{t("titleCase")}</option>
               </select>
             </label>
             <label className="entity-form__field">
-              <span>Espaciado de letras de títulos (px)</span>
+              <span>{t("headingLetterSpacing")}</span>
               <input
                 type="number"
                 step="0.1"
@@ -246,19 +247,20 @@ export function TemplateEditor({
               />
             </label>
             <label className="entity-form__field">
-              <span>Alineación del contenido</span>
+              <span>{t("contentAlignment")}</span>
               <AlignmentSelect
                 value={draft.typography.textAlignment}
                 onChange={(v) => set("typography", { ...draft.typography, textAlignment: v })}
+                t={t}
               />
             </label>
           </div>
 
-          <h2 className="template-editor__group-title">Colores</h2>
+          <h2 className="template-editor__group-title">{t("colors")}</h2>
           <div className="template-editor__grid">
             {(["text", "background", "accent", "muted", "border"] as const).map((key) => (
               <label key={key} className="entity-form__field">
-                <span>{colorLabel(key)}</span>
+                <span>{colorLabel(key, t)}</span>
                 <div className="template-editor__color-input">
                   <input
                     type="color"
@@ -271,10 +273,10 @@ export function TemplateEditor({
             ))}
           </div>
 
-          <h2 className="template-editor__group-title">Espaciado</h2>
+          <h2 className="template-editor__group-title">{t("spacing")}</h2>
           <div className="template-editor__grid">
             <label className="entity-form__field">
-              <span>Espacio entre secciones (px)</span>
+              <span>{t("sectionSpacing")}</span>
               <input
                 type="number"
                 value={draft.spacing.sectionGap}
@@ -282,7 +284,7 @@ export function TemplateEditor({
               />
             </label>
             <label className="entity-form__field">
-              <span>Espacio entre items (px)</span>
+              <span>{t("itemCornerRadius")}</span>
               <input
                 type="number"
                 value={draft.spacing.itemGap}
@@ -290,7 +292,7 @@ export function TemplateEditor({
               />
             </label>
             <label className="entity-form__field">
-              <span>Espacio entre párrafos (px)</span>
+              <span>{t("paragraphSpacing")}</span>
               <input
                 type="number"
                 value={draft.spacing.paragraphSpacing}
@@ -299,7 +301,7 @@ export function TemplateEditor({
             </label>
             {(["top", "right", "bottom", "left"] as const).map((key) => (
               <label key={key} className="entity-form__field">
-                <span>Margen {marginLabel(key)} (mm)</span>
+                <span>{t("marginPrefix")}{marginLabel(key, t)} (mm)</span>
                 <input
                   type="number"
                   value={draft.spacing.margins[key]}
@@ -311,17 +313,18 @@ export function TemplateEditor({
             ))}
           </div>
 
-          <h2 className="template-editor__group-title">Título de sección</h2>
+          <h2 className="template-editor__group-title">{t("sectionTitle")}</h2>
           <div className="template-editor__grid">
             <label className="entity-form__field">
-              <span>Alineación</span>
+              <span>{t("templateAlignment")}</span>
               <AlignmentSelect
                 value={bagString(draft.sectionTitleStyle, "alignment", "left") as TextAlignment}
                 onChange={(v) => setBag("sectionTitleStyle", { alignment: v })}
+                t={t}
               />
             </label>
             <label className="entity-form__field">
-              <span>Distancia al contenido (px)</span>
+              <span>{t("distanceToContent")}</span>
               <input
                 type="number"
                 value={bagNumber(draft.sectionTitleStyle, "spacing", 6)}
@@ -330,10 +333,10 @@ export function TemplateEditor({
             </label>
           </div>
 
-          <h2 className="template-editor__group-title">Encabezado</h2>
+          <h2 className="template-editor__group-title">{t("header")}</h2>
           <div className="template-editor__grid">
             <label className="entity-form__field">
-              <span>Diseño</span>
+              <span>{t("design")}</span>
               <select
                 value={bagString(draft.headerStyle, "layout", "stacked")}
                 onChange={(e) => {
@@ -346,20 +349,21 @@ export function TemplateEditor({
                   setBag("headerStyle", { layout, alignment: layout === "banner" ? "center" : "left" });
                 }}
               >
-                <option value="stacked">Lista (un campo debajo de otro)</option>
-                <option value="banner">Banner (nombre grande + contacto en una línea)</option>
+                <option value="stacked">{t("stackedLayout")}</option>
+                <option value="banner">{t("bannerLayout")}</option>
               </select>
             </label>
             <label className="entity-form__field">
-              <span>Alineación</span>
+              <span>{t("templateAlignment")}</span>
               <AlignmentSelect
                 value={bagString(draft.headerStyle, "alignment", "left") as TextAlignment}
                 onChange={(v) => setBag("headerStyle", { alignment: v })}
+                t={t}
               />
             </label>
             {bagString(draft.headerStyle, "layout", "stacked") === "banner" ? (
               <label className="entity-form__field">
-                <span>Tamaño del nombre (px)</span>
+                <span>{t("nameSize")}</span>
                 <input
                   type="number"
                   value={bagNumber(draft.headerStyle, "nameFontSize", 28)}
@@ -369,7 +373,7 @@ export function TemplateEditor({
             ) : (
               <>
                 <label className="entity-form__field">
-                  <span>Altura (px)</span>
+                  <span>{t("height")}</span>
                   <input
                     type="number"
                     value={bagNumber(draft.headerStyle, "height", 90)}
@@ -377,7 +381,7 @@ export function TemplateEditor({
                   />
                 </label>
                 <label className="entity-form__field">
-                  <span>Padding interno (px)</span>
+                  <span>{t("innerPadding")}</span>
                   <input
                     type="number"
                     value={bagNumber(draft.headerStyle, "padding", 12)}
@@ -388,74 +392,74 @@ export function TemplateEditor({
             )}
           </div>
 
-          <h2 className="template-editor__group-title">Fechas</h2>
+          <h2 className="template-editor__group-title">{t("dates")}</h2>
           <div className="template-editor__grid">
             <label className="entity-form__field">
-              <span>Posición</span>
+              <span>{t("position")}</span>
               <select
                 value={bagString(draft.dateStyle, "position", "right")}
                 onChange={(e) => setBag("dateStyle", { position: e.target.value })}
               >
-                <option value="right">Derecha</option>
-                <option value="left">Izquierda</option>
-                <option value="inline">En línea con el título</option>
+                <option value="right">{t("right")}</option>
+                <option value="left">{t("left")}</option>
+                <option value="inline">{t("inlineWithTitle")}</option>
               </select>
             </label>
             <label className="entity-form__field">
-              <span>Formato</span>
+              <span>{t("format")}</span>
               <select
                 value={bagString(draft.dateStyle, "format", "MMM YYYY")}
                 onChange={(e) => setBag("dateStyle", { format: e.target.value })}
               >
-                <option value="MMM YYYY">mmm AAAA (jun 2024)</option>
-                <option value="MM/YYYY">MM/AAAA (06/2024)</option>
-                <option value="YYYY">Solo el año (2024)</option>
+                <option value="MMM YYYY">{t("monthYearExample")}</option>
+                <option value="MM/YYYY">{t("monthYearNumericExample")}</option>
+                <option value="YYYY">{t("yearOnlyExample")}</option>
               </select>
             </label>
           </div>
 
-          <h2 className="template-editor__group-title">Idiomas</h2>
+          <h2 className="template-editor__group-title">{t("languages")}</h2>
           <div className="template-editor__grid">
             <label className="entity-form__field">
-              <span>Alineación</span>
+              <span>{t("templateAlignment")}</span>
               <select
                 value={bagString(draft.languagesStyle, "alignment", "center")}
                 onChange={(e) => setBag("languagesStyle", { alignment: e.target.value })}
               >
-                <option value="left">Izquierda</option>
-                <option value="center">Centrado</option>
-                <option value="right">Derecha</option>
+                <option value="left">{t("left")}</option>
+                <option value="center">{t("center")}</option>
+                <option value="right">{t("right")}</option>
               </select>
             </label>
             <label className="entity-form__field">
-              <span>Modo</span>
+              <span>{t("mode")}</span>
               <select
                 value={bagString(draft.languagesStyle, "mode", "columns")}
                 onChange={(e) => setBag("languagesStyle", { mode: e.target.value })}
               >
-                <option value="columns">Columnas (una por idioma, en fila)</option>
-                <option value="row">Fila (apilados, como el resto de secciones)</option>
-                <option value="list">Lista (Español (Nativo), Inglés (B2)...)</option>
+                <option value="columns">{t("languageColumns")}</option>
+                <option value="row">{t("languageRow")}</option>
+                <option value="list">{t("languageList")}</option>
               </select>
             </label>
           </div>
 
-          <h2 className="template-editor__group-title">Viñetas</h2>
+          <h2 className="template-editor__group-title">{t("bullets")}</h2>
           <div className="template-editor__grid">
             <label className="entity-form__field">
-              <span>Forma</span>
+              <span>{t("shape")}</span>
               <select
                 value={bagString(draft.bulletStyle, "shape", "circle")}
                 onChange={(e) => setBag("bulletStyle", { shape: e.target.value })}
               >
-                <option value="circle">Punto (•)</option>
-                <option value="dash">Guion (–)</option>
-                <option value="square">Cuadrado (▪)</option>
-                <option value="none">Ninguna</option>
+                <option value="circle">{t("dot")}</option>
+                <option value="dash">{t("dash")}</option>
+                <option value="square">{t("square")}</option>
+                <option value="none">{t("none")}</option>
               </select>
             </label>
             <label className="entity-form__field">
-              <span>Sangría (px)</span>
+              <span>{t("indent")}</span>
               <input
                 type="number"
                 value={bagNumber(draft.bulletStyle, "indent", 10)}
@@ -463,7 +467,7 @@ export function TemplateEditor({
               />
             </label>
             <label className="entity-form__field">
-              <span>Distancia al texto (px)</span>
+              <span>{t("textDistance")}</span>
               <input
                 type="number"
                 value={bagNumber(draft.bulletStyle, "gap", 3)}
@@ -472,21 +476,21 @@ export function TemplateEditor({
             </label>
           </div>
 
-          <h2 className="template-editor__group-title">Separadores y enlaces</h2>
+          <h2 className="template-editor__group-title">{t("separatorsAndLinks")}</h2>
           <div className="template-editor__grid">
             <label className="entity-form__field">
-              <span>Separador de secciones</span>
+              <span>{t("sectionSeparator")}</span>
               <select
                 value={bagString(draft.separators, "style", "line")}
                 onChange={(e) => setBag("separators", { style: e.target.value })}
               >
-                <option value="line">Línea</option>
-                <option value="dots">Puntos</option>
-                <option value="none">Ninguno</option>
+                <option value="line">{t("line")}</option>
+                <option value="dots">{t("dots")}</option>
+                <option value="none">{t("none")}</option>
               </select>
             </label>
             <label className="entity-form__field">
-              <span>Grosor del separador (px)</span>
+              <span>{t("separatorThickness")}</span>
               <input
                 type="number"
                 value={bagNumber(draft.separators, "thickness", 1)}
@@ -494,7 +498,7 @@ export function TemplateEditor({
               />
             </label>
             <label className="entity-form__field">
-              <span>Redondeo de elementos (px)</span>
+              <span>{t("itemSpacing")}</span>
               <input
                 type="number"
                 value={bagNumber(draft.separators, "borderRadius", 4)}
@@ -502,15 +506,15 @@ export function TemplateEditor({
               />
             </label>
             <label className="entity-form__field">
-              <span>Apariencia de enlaces</span>
+              <span>{t("linkAppearance")}</span>
               <select
                 value={bagString(draft.linkStyle, "appearance", "accent_underline")}
                 onChange={(e) => setBag("linkStyle", { appearance: e.target.value })}
               >
-                <option value="accent_underline">Color de acento + subrayado</option>
-                <option value="accent">Solo color de acento</option>
-                <option value="underline">Solo subrayado</option>
-                <option value="plain">Como texto normal</option>
+                <option value="accent_underline">{t("accentUnderline")}</option>
+                <option value="accent">{t("accentOnly")}</option>
+                <option value="underline">{t("underlineOnly")}</option>
+                <option value="plain">{t("plainText")}</option>
               </select>
             </label>
           </div>
@@ -519,13 +523,12 @@ export function TemplateEditor({
         <div className="template-editor__panel-right" ref={panelRightRef}>
           {db.cvVersions.length === 0 ? (
             <p className="empty-state">
-              Todavía no tienes ningún CV con contenido para previsualizar esta template. Crea uno
-              primero desde el Dashboard.
+              {t("noCvToPreview")}
             </p>
           ) : (
             <>
               <label className="template-editor__preview-picker">
-                <span>Previsualizar con:</span>
+                <span>{t("previewWith")}</span>
                 <select value={previewVersionId} onChange={(e) => setPreviewVersionId(e.target.value)}>
                   {sortAlpha(db.cvProjects, (p) => p.name).map((project) =>
                     sortAlpha(
@@ -554,22 +557,22 @@ export function TemplateEditor({
   );
 }
 
-function AlignmentSelect({ value, onChange }: { value: TextAlignment; onChange: (v: TextAlignment) => void }) {
+function AlignmentSelect({ value, onChange, t }: { value: TextAlignment; onChange: (v: TextAlignment) => void; t: (key: string) => string }) {
   return (
     <select value={value} onChange={(e) => onChange(e.target.value as TextAlignment)}>
-      <option value="left">Izquierda</option>
-      <option value="center">Centrado</option>
-      <option value="right">Derecha</option>
-      <option value="justify">Justificado</option>
+      <option value="left">{t("left")}</option>
+      <option value="center">{t("center")}</option>
+      <option value="right">{t("right")}</option>
+      <option value="justify">{t("templateAlignmentOptionJustified")}</option>
     </select>
   );
 }
 
-function colorLabel(key: "text" | "background" | "accent" | "muted" | "border"): string {
-  const labels = { text: "Texto", background: "Fondo", accent: "Acento", muted: "Atenuado", border: "Bordes" };
-  return labels[key];
+function colorLabel(key: "text" | "background" | "accent" | "muted" | "border", t: (key: string) => string): string {
+  const labels = { text: "fontColorText", background: "fontColorBackground", accent: "fontColorAccent", muted: "fontColorMuted", border: "fontColorBorder" };
+  return t(labels[key]);
 }
-function marginLabel(key: "top" | "right" | "bottom" | "left"): string {
-  const labels = { top: "superior", right: "derecho", bottom: "inferior", left: "izquierdo" };
-  return labels[key];
+function marginLabel(key: "top" | "right" | "bottom" | "left", t: (key: string) => string): string {
+  const labels = { top: "marginTop", right: "marginRight", bottom: "marginBottom", left: "marginLeft" };
+  return t(labels[key]);
 }

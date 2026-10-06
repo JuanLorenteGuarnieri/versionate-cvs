@@ -10,6 +10,7 @@ import {
   type JobMatchResult,
 } from "../../../domain/jobMatching.js";
 import { useUILanguage } from "../UILanguageContext.js";
+import { ScreenHeader } from "./ScreenHeader.js";
 
 /**
  * "Crear CV a partir de una oferta de trabajo" (petición explícita), con
@@ -56,11 +57,10 @@ function selectionToSections(match: JobMatchResult, selection: Selection) {
 const DEFAULT_MAX_ITEMS = 6;
 const DEFAULT_MIN_SCORE = 1;
 
-const LANGUAGE_NAMES: Record<string, string> = { es: "español", en: "inglés" };
-const CATEGORY_LABELS: Record<ScoreCategory, string> = {
-  education: "Educación",
-  technologies: "Tecnologías",
-  experience: "Experiencia",
+const CATEGORY_KEYS: Record<ScoreCategory, string> = {
+  education: "education",
+  technologies: "technologiesTools",
+  experience: "experience",
 };
 
 function formatDelta(delta: number): string {
@@ -78,7 +78,7 @@ export function JobMatchScreen({
   onBack: () => void;
   onCreated: (projectId: string) => void;
 }) {
-  const { t } = useUILanguage();
+  const { t, getLanguageDisplayName, language } = useUILanguage();
   const [jobDescriptionText, setJobDescriptionText] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [maxItemsPerSection, setMaxItemsPerSection] = useState(DEFAULT_MAX_ITEMS);
@@ -157,10 +157,7 @@ export function JobMatchScreen({
   if (step.type === "paste") {
     return (
       <main className="job-match">
-        <button className="link-button" onClick={onBack}>
-          ← Volver
-        </button>
-        <h1>{t("jobMatchCreateFromOffer")}</h1>
+        <ScreenHeader title={t("jobMatchCreateFromOffer")} onBack={onBack} />
         <p className="job-match__subtitle">
           {t("jobMatchPasteInstructions")}
         </p>
@@ -174,12 +171,12 @@ export function JobMatchScreen({
         />
 
         <button className="link-button job-match__advanced-toggle" onClick={() => setShowAdvanced((v) => !v)}>
-          {showAdvanced ? "▾" : "▸"} Opciones avanzadas
+          {showAdvanced ? "▾" : "▸"} {t("jobMatchAdvanced")}
         </button>
         {showAdvanced && (
           <div className="job-match__advanced">
             <label>
-              Máximo de elementos por sección
+              {t("maxItemsPerSection")}
               <input
                 type="number"
                 min={1}
@@ -189,7 +186,7 @@ export function JobMatchScreen({
               />
             </label>
             <label>
-              Puntuación mínima para considerar relación
+              {t("minimumMatchScore")}
               <input
                 type="number"
                 min={1}
@@ -202,10 +199,10 @@ export function JobMatchScreen({
 
         <div className="entity-form__actions">
           <button className="primary-button" onClick={handleAnalyze} disabled={!jobDescriptionText.trim()}>
-            Analizar y proponer selección
+            {t("analyzeAndSuggest")}
           </button>
           <button className="link-button" onClick={onBack}>
-            Cancelar
+            {t("cancel")}
           </button>
         </div>
       </main>
@@ -216,30 +213,28 @@ export function JobMatchScreen({
 
   return (
     <main className="job-match">
-      <button className="link-button" onClick={() => setStep({ type: "paste" })}>
-        ← Volver a pegar otra oferta
-      </button>
-      <h1>Revisa la selección antes de crear el CV</h1>
+      <ScreenHeader
+        title={t("reviewSelectionTitle")}
+        onBack={() => setStep({ type: "paste" })}
+        backLabel={t("backToPasteJob")}
+      />
       <p className="job-match__subtitle">
-        Desmarca lo que no encaje, cambia de versión, o añade opciones adicionales, y observa cómo
-        cambia la puntuación. Nada se crea todavía — al confirmar se genera un CV nuevo con
-        exactamente lo que quede marcado.
+        {t("reviewSelectionDescription")}
       </p>
 
       {match.detectedLanguage && (
         <p className="job-match__language-hint">
-          Idioma detectado de la oferta: <strong>{LANGUAGE_NAMES[match.detectedLanguage] ?? match.detectedLanguage}</strong>.
-          Se usará como idioma de visualización del CV, y se preferirán variantes etiquetadas "v
-          {match.detectedLanguage.toUpperCase()}" donde existan.
+          {t("detectedJobLanguagePrefix")}<strong>{getLanguageDisplayName(match.detectedLanguage) || match.detectedLanguage}</strong>
+          {t("detectedJobLanguageSuffix")}{match.detectedLanguage.toUpperCase()}{t("detectedJobLanguageEnd")}
         </p>
       )}
 
       <div className="job-match__score">
         <div className="job-match__score-number">{liveBreakdown?.overall ?? 0}%</div>
         <div>
-          <div className="job-match__score-label">Correspondencia general con la oferta</div>
+          <div className="job-match__score-label">{t("overallJobMatch")}</div>
           <div className="job-match__score-hint">
-            Qué proporción de las menciones de keywords de la oferta cubre esta selección.
+            {t("jobMatchScoreHint")}
           </div>
         </div>
       </div>
@@ -248,21 +243,21 @@ export function JobMatchScreen({
         <div className="job-match__category-scores">
           <div className="job-match__category-score">
             <div className="job-match__category-score-header">
-              <span>Educación</span>
+              <span>{t("education")}</span>
               <span className="job-match__category-score-number">{liveBreakdown.education.score}%</span>
             </div>
             <p>{liveBreakdown.education.detail}</p>
           </div>
           <div className="job-match__category-score">
             <div className="job-match__category-score-header">
-              <span>Tecnologías / Herramientas</span>
+              <span>{t("technologiesTools")}</span>
               <span className="job-match__category-score-number">{liveBreakdown.technologies.score}%</span>
             </div>
             <p>{liveBreakdown.technologies.detail}</p>
           </div>
           <div className="job-match__category-score">
             <div className="job-match__category-score-header">
-              <span>Experiencia</span>
+              <span>{t("experience")}</span>
               <span className="job-match__category-score-number">{liveBreakdown.experience.score}%</span>
             </div>
             <p>{liveBreakdown.experience.detail}</p>
@@ -272,7 +267,7 @@ export function JobMatchScreen({
 
       {match.jobKeywords.length > 0 && (
         <div className="job-match__keywords">
-          <h3>Keywords más relevantes de esta oferta</h3>
+          <h3>{t("relevantJobKeywords")}</h3>
           <div className="job-match__keyword-list">
             {match.jobKeywords.map((k) => (
               <span key={k.term} className={`job-match__keyword-chip${k.isTech ? " job-match__keyword-chip--tech" : ""}`}>
@@ -281,14 +276,13 @@ export function JobMatchScreen({
             ))}
           </div>
           <p className="job-match__keywords-hint">
-            Las keywords resaltadas son tecnologías/herramientas reconocidas — pesan más en la
-            puntuación que una palabra genérica del anuncio.
+            {t("jobKeywordsHint")}
           </p>
         </div>
       )}
 
       <label className="job-match__name-field">
-        Nombre del CV
+        {t("cvName")}
         <input type="text" value={cvName} onChange={(e) => setCvName(e.target.value)} />
       </label>
 
@@ -346,10 +340,10 @@ export function JobMatchScreen({
                 ? computeItemCategoryImpacts(db, currentSections, step.jobDescriptionText, section.sectionDefinitionId, item.elementId, v.variantId)
                 : null;
             const labelParts: string[] = [];
-            if (variantImpacts?.education.withScore) labelParts.push(`Educ ${variantImpacts.education.withScore}%`);
-            if (variantImpacts?.technologies.withScore) labelParts.push(`Tec ${variantImpacts.technologies.withScore}%`);
-            if (variantImpacts?.experience?.withScore) labelParts.push(`Exp ${variantImpacts.experience.withScore}%`);
-            return { ...v, scoreLabel: labelParts.length > 0 ? labelParts.join(" · ") : `${v.score} pts` };
+            if (variantImpacts?.education.withScore) labelParts.push(`${t("education")} ${variantImpacts.education.withScore}%`);
+            if (variantImpacts?.technologies.withScore) labelParts.push(`${t("technologiesTools")} ${variantImpacts.technologies.withScore}%`);
+            if (variantImpacts?.experience?.withScore) labelParts.push(`${t("experience")} ${variantImpacts.experience.withScore}%`);
+            return { ...v, scoreLabel: labelParts.length > 0 ? labelParts.join(" · ") : `${v.score} ${t("pointsAbbreviation")}` };
           });
           const bestVariantId = variantOptions.reduce((best, v) => (v.score > best.score ? v : best), variantOptions[0]!).variantId;
 
@@ -366,32 +360,30 @@ export function JobMatchScreen({
                   {section.alwaysIncluded ? (
                     currentMatchedKeywords.length > 0 ? (
                       <div className="job-match__item-reason">
-                        Se incluye siempre — versión elegida porque coincide con {currentMatchedKeywords.length} keyword
-                        {currentMatchedKeywords.length === 1 ? "" : "s"}: {currentMatchedKeywords.join(", ")}
+                        {t("alwaysChosenPrefix")}{currentMatchedKeywords.length}{t(currentMatchedKeywords.length === 1 ? "keywordSingular" : "keywordPlural")}{currentMatchedKeywords.join(", ")}
                       </div>
                     ) : (
-                      <div className="job-match__item-reason">Se incluye siempre — ninguna versión coincide especialmente con esta oferta.</div>
+                      <div className="job-match__item-reason">{t("alwaysIncludedNoMatch")}</div>
                     )
                   ) : currentMatchedKeywords.length > 0 ? (
                     <div className="job-match__item-reason">
-                      Coincide con {currentMatchedKeywords.length} keyword
-                      {currentMatchedKeywords.length === 1 ? "" : "s"}: {currentMatchedKeywords.join(", ")}
+                      {t("matchesKeywordPrefix")}{currentMatchedKeywords.length}{t(currentMatchedKeywords.length === 1 ? "keywordSingular" : "keywordPlural")}{currentMatchedKeywords.join(", ")}
                     </div>
                   ) : (
-                    <div className="job-match__item-reason">Sin keywords en común detectadas.</div>
+                    <div className="job-match__item-reason">{t("noKeywordMatches")}</div>
                   )}
                   {impactLines.map(([category, detail]) => (
                     <div key={category} className="job-match__item-impact">
                       {entry?.included
-                        ? `${formatDelta(detail.delta)}% en ${CATEGORY_LABELS[category]} (queda en ${detail.withScore}%)`
-                        : `Si se añade: ${formatDelta(detail.delta)}% en ${CATEGORY_LABELS[category]} (pasaría a ${detail.withScore}%)`}
+                        ? `${formatDelta(detail.delta)}${t("scoreRemainsPrefix")}${t(CATEGORY_KEYS[category])}${t("scoreRemainsSuffix")}${detail.withScore}${t("scorePercentClose")}`
+                        : `${t("ifAddedPrefix")}${formatDelta(detail.delta)}${t("scoreRemainsPrefix")}${t(CATEGORY_KEYS[category])}${t("scoreWouldBeSuffix")}${detail.withScore}${t("scorePercentClose")}`}
                     </div>
                   ))}
                 </div>
               </label>
               {item.availableVariants.length > 1 && (
                 <label className="job-match__variant-picker">
-                  Versión
+                  {t("versionLabelShort")}
                   <select
                     value={currentVariantId}
                     onChange={(e) => changeVariant(section.sectionDefinitionId, item.elementId, e.target.value)}
@@ -412,9 +404,9 @@ export function JobMatchScreen({
         return (
           <section key={section.sectionDefinitionId} className="job-match__section">
             <div className="job-match__section-header">
-              <h2>{sectionDef?.defaultTitle ?? "Sección"}</h2>
+              <h2>{sectionDef?.defaultTitle ?? t("sectionFallback")}</h2>
               {section.alwaysIncluded ? (
-                <span className="job-match__badge">Se incluye siempre</span>
+                <span className="job-match__badge">{t("alwaysIncluded")}</span>
               ) : (
                 <label className="job-match__toggle-all">
                   <input
@@ -422,15 +414,14 @@ export function JobMatchScreen({
                     checked={allChecked}
                     onChange={(e) => toggleSection(section.sectionDefinitionId, allElementIds, e.target.checked)}
                   />
-                  Marcar/desmarcar todo
+                  {t("markAll")}
                 </label>
               )}
             </div>
 
             {proposed.length === 0 && !section.alwaysIncluded && (
               <p className="empty-state">
-                Nada de esta sección coincidió automáticamente con la oferta — puedes añadir algo a
-                mano abajo si quieres incluirlo igualmente.
+                {t("noAutomaticMatchPrefix")}
               </p>
             )}
 
@@ -439,8 +430,7 @@ export function JobMatchScreen({
             {others.length > 0 && (
               <div className="job-match__other-options">
                 <button className="link-button" onClick={() => toggleExpanded(section.sectionDefinitionId)}>
-                  {isExpanded ? "▾" : "▸"} {others.length} opción{others.length === 1 ? "" : "es"} más de tu base de
-                  datos que no se propuso{others.length === 1 ? "" : "n"} automáticamente
+                  {isExpanded ? "▾" : "▸"} {others.length}{t(others.length === 1 ? "otherOption" : "otherOptions")}{t(others.length === 1 ? "otherOptionTail" : "otherOptionsTail")}
                 </button>
                 {isExpanded && others.map(renderItem)}
               </div>
@@ -451,10 +441,10 @@ export function JobMatchScreen({
 
       <div className="entity-form__actions">
         <button className="primary-button" onClick={handleConfirm}>
-          Crear CV con esta selección
+          {t("createCvWithSelection")}
         </button>
         <button className="link-button" onClick={onBack}>
-          Cancelar
+          {t("cancel")}
         </button>
       </div>
     </main>

@@ -66,6 +66,79 @@ h1 {
   margin: 0 0 0.25rem;
 }
 
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+.page-header h1 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.language-selector {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.language-selector--floating {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 100;
+}
+.language-selector__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.language-selector__select {
+  appearance: none;
+  min-width: 5.8rem;
+  padding: 0.4rem 1.7rem 0.4rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.85rem;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.language-selector::after {
+  position: absolute;
+  right: 0.7rem;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-right: 1.5px solid var(--text-muted);
+  border-bottom: 1.5px solid var(--text-muted);
+  content: "";
+  pointer-events: none;
+  transform: translateY(-0.12rem) rotate(45deg);
+}
+.language-selector__select:hover {
+  border-color: var(--accent-strong);
+}
+.language-selector__select:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+}
+.language-selector__select option {
+  background: var(--surface);
+  color: var(--text);
+}
+
 /* Foco de teclado siempre visible: no es opcional (accesibilidad). */
 :focus-visible {
   outline: 2px solid var(--accent-strong);
@@ -119,6 +192,7 @@ h1 {
   gap: 1rem;
   padding: 0.75rem 1.5rem;
   border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
 }
 .section-panel__toolbar h1 {
   margin: 0;
@@ -231,7 +305,7 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 8rem 0.75rem 1.5rem;
   border-bottom: 1px solid var(--border);
 }
 .cv-composer__toolbar h1 {
@@ -274,7 +348,7 @@ h1 {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem 1rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.75rem 8rem 0.75rem 1.5rem;
   border-bottom: 1px solid var(--border);
 }
 .template-editor__toolbar h1 {
@@ -975,6 +1049,8 @@ a.cv-preview__tag:hover {
   .cv-preview,
   .cv-preview * {
     visibility: visible;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
   .cv-preview {
     position: absolute;
@@ -1613,7 +1689,7 @@ button {
 .dashboard__topbar {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 1rem;
   position: sticky;
   top: 0;
@@ -1624,16 +1700,21 @@ button {
      top:0, así que al hacer scroll se veía moverse un poco antes de
      quedarse fija — con esto queda pegada arriba desde el primer píxel de
      scroll (bug real, reportado como "el header se scrolea un poco"). */
-  margin: -2rem -1.5rem 0.5rem;
+  margin: -2rem -8.5rem 0.5rem;
   padding: 1.25rem 1.5rem 0.75rem;
   border-bottom: 1px solid var(--border);
 }
 
 .dashboard__utility-links {
   display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
   gap: 1rem;
-  flex-shrink: 0;
+  min-width: 0;
   padding-top: 0.25rem;
+}
+.dashboard__utility-links h1 {
+  flex: 0 0 auto;
 }
 
 .trash-screen,
@@ -1697,6 +1778,27 @@ button {
   max-width: 720px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
+}
+
+@media (max-width: 560px) {
+  .page-header {
+    flex-wrap: wrap;
+    padding-right: 6.5rem;
+  }
+  .page-header h1 {
+    flex: 1 1 12rem;
+  }
+  .dashboard__topbar {
+    align-items: flex-start;
+    padding-right: 7rem;
+  }
+  .dashboard__utility-links {
+    gap: 0.45rem 0.75rem;
+  }
+  .language-selector--floating {
+    top: 0.5rem;
+    right: 0.5rem;
+  }
 }
 
 .ats-screen__subtitle {

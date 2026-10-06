@@ -3,6 +3,7 @@ import type { AppDatabase } from "../../../domain/model/types.js";
 import { describeTrashEntry } from "../../../domain/trash.js";
 import { formatTimestampForDisplay } from "../../../domain/formatting.js";
 import { useUILanguage } from "../UILanguageContext.js";
+import { ScreenHeader } from "./ScreenHeader.js";
 
 /**
  * Fase 11 del plan (papelera visible en UI, §15 del contexto). La lógica
@@ -15,12 +16,14 @@ export function TrashScreen({ appStore, db, onBack }: { appStore: AppStore; db: 
   const entries = [...db.trash].sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
 
   function handleDeleteForever(entryId: string, label: string) {
-    if (!window.confirm(`¿Eliminar definitivamente ${label}? No podrás deshacerlo.`)) return;
+    const confirmMessage = t('trashDeleteForeverConfirmPrefix') + label + t('trashDeleteForeverConfirmSuffix');
+    if (!window.confirm(confirmMessage)) return;
     appStore.deleteTrashEntry(entryId);
   }
 
   function handleEmpty() {
-    if (!window.confirm(`¿Vaciar la papelera? Se eliminarán definitivamente ${entries.length} elemento(s), sin poder deshacerlo.`)) {
+    const confirmMessage = t('trashEmptyConfirmPrefix') + entries.length + t('trashEmptyConfirmSuffix');
+    if (!window.confirm(confirmMessage)) {
       return;
     }
     appStore.emptyTrash();
@@ -28,10 +31,7 @@ export function TrashScreen({ appStore, db, onBack }: { appStore: AppStore; db: 
 
   return (
     <main className="trash-screen">
-      <button className="link-button" onClick={onBack}>
-        {t("back")}
-      </button>
-      <h1>{t("trash")}</h1>
+      <ScreenHeader title={t("trash")} onBack={onBack} />
 
       {entries.length === 0 ? (
         <p className="empty-state">{t("noItemsTrash")}</p>

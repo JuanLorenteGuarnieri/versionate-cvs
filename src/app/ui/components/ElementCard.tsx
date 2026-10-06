@@ -4,6 +4,7 @@ import type { AppDatabase, Element, FieldValue, SectionDefinition } from "../../
 import { FieldInputs } from "./FieldInputs.js";
 import { sortAlpha } from "../sortAlpha.js";
 import { guessElementLabel } from "../../../domain/labels.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 export function ElementCard({
   appStore,
@@ -16,6 +17,7 @@ export function ElementCard({
   section: SectionDefinition;
   element: Element;
 }) {
+  const { t } = useUILanguage();
   const variants = sortAlpha(
     element.variantIds
       .map((id) => db.variants.find((v) => v.id === id))
@@ -53,7 +55,7 @@ export function ElementCard({
   }
 
   function handleSaveAsVariant() {
-    const name = window.prompt("Nombre para la nueva variante:", `${variant.name} (copia)`);
+    const name = window.prompt(t("newVariantPrompt"), `${variant.name}${t("variantCopySuffix")}`);
     if (!name) return;
     const { variantId } = appStore.forkVariant(variant.id, name, draft);
     appStore.setDefaultVariant(element.id, variantId);
@@ -61,7 +63,7 @@ export function ElementCard({
 
   /** Antes solo se podía poner un nombre a una variante al crearla ("Guardar como variante"). */
   function handleRename() {
-    const name = window.prompt("Nuevo nombre para esta variante:", variant.name);
+    const name = window.prompt(t("renameVariantPrompt"), variant.name);
     if (!name) return;
     try {
       appStore.renameVariant(variant.id, name);
@@ -82,7 +84,7 @@ export function ElementCard({
   function handleRenameElement() {
     const current = guessElementLabel(element, db);
     const name = window.prompt(
-      "Nombre para identificar este elemento en las listas (déjalo vacío para volver a adivinarlo automáticamente):",
+      t("renameElementPrompt"),
       current
     );
     if (name === null) return;
@@ -97,9 +99,7 @@ export function ElementCard({
     const referencedByCvVersionIds = appStore.findReferences("element", element.id);
     if (referencedByCvVersionIds.length > 0) {
       const proceed = window.confirm(
-        `Este elemento se usa en ${referencedByCvVersionIds.length} versión(es) de CV. ` +
-          "Si continúas, esas versiones quedarán con una referencia rota hasta que lo restaures. " +
-          "¿Enviar a la papelera de todas formas?"
+        `${t("referencedByPrefix")}${referencedByCvVersionIds.length}${t("referencedBySuffix")}. ${t("trashElementWithReferences")}`
       );
       if (!proceed) return;
     }
@@ -138,13 +138,13 @@ export function ElementCard({
   return (
     <article className="element-card">
       <header className="element-card__header">
-        <span className="element-card__label" title="Nombre con el que aparece este elemento en las listas">
+        <span className="element-card__label" title={t("elementLabelTitle")}>
           {guessElementLabel(element, db)}
         </span>
         {isEditing && (
           <>
             <button className="link-button" onClick={handleRenameElement}>
-              Renombrar elemento
+              {t("renameElement")}
             </button>
             <select value={variant.id} onChange={(e) => handleVariantSwitch(e.target.value)}>
               {variants.map((v) => (
@@ -154,18 +154,18 @@ export function ElementCard({
               ))}
             </select>
             <button className="link-button" onClick={handleRename}>
-              Renombrar
+              {t("rename")}
             </button>
             <button className="link-button link-button--danger" onClick={handleDeleteVariant}>
-              Eliminar esta variante
+              {t("deleteVariant")}
             </button>
             <button className="link-button link-button--danger" onClick={handleDelete}>
-              Eliminar elemento completo
+              {t("deleteFullElement")}
             </button>
           </>
         )}
         <button className="secondary-button element-card__toggle" onClick={() => setIsEditing((v) => !v)}>
-          {isEditing ? "Cerrar" : "Editar"}
+          {isEditing ? t("close") : t("edit")}
         </button>
       </header>
 
@@ -175,11 +175,11 @@ export function ElementCard({
 
           <div className="element-card__actions">
             <button className="primary-button" onClick={handleSave}>
-              Guardar
+              {t("save")}
             </button>
-            {justSaved && <span className="cv-item-edit-panel__saved">✓ Guardado</span>}
+            {justSaved && <span className="cv-item-edit-panel__saved">{t("saved")}</span>}
             <button className="secondary-button" onClick={handleSaveAsVariant}>
-              Guardar como variante
+              {t("saveAsVariant")}
             </button>
           </div>
         </>

@@ -3,6 +3,8 @@ import type { AppStore } from "../../state/appStore.js";
 import type { AppDatabase, SectionDefinition } from "../../../domain/model/types.js";
 import { ElementCard } from "./ElementCard.js";
 import { NewElementForm } from "./NewElementForm.js";
+import { useUILanguage } from "../UILanguageContext.js";
+import { ScreenHeader } from "./ScreenHeader.js";
 
 export function SectionPanel({
   appStore,
@@ -15,21 +17,22 @@ export function SectionPanel({
   section: SectionDefinition;
   onBack: () => void;
 }) {
+  const { t } = useUILanguage();
   const [showNewForm, setShowNewForm] = useState(false);
   const elements = db.elements.filter((e) => e.sectionId === section.id);
 
   return (
     <main className="section-panel">
-      <header className="section-panel__toolbar">
-        <button className="link-button" onClick={onBack}>
-          ← Todas las secciones
-        </button>
-        <h1>{section.defaultTitle}</h1>
-      </header>
+      <ScreenHeader
+        title={section.defaultTitle}
+        onBack={onBack}
+        backLabel={t("allSections")}
+        className="section-panel__toolbar"
+      />
 
       <div className="section-panel__body">
         {elements.length === 0 && !showNewForm && (
-          <p className="empty-state">Todavía no hay nada aquí. Añade el primero.</p>
+          <p className="empty-state">{t("noSectionItems")}</p>
         )}
 
         <ul className="element-list">
@@ -49,7 +52,7 @@ export function SectionPanel({
           />
         ) : (
           <button className="primary-button" onClick={() => setShowNewForm(true)}>
-            + Añadir a {section.defaultTitle}
+            {t("addToSectionPrefix")}{section.defaultTitle}
           </button>
         )}
       </div>

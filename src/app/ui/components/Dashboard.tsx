@@ -114,19 +114,19 @@ export function Dashboard({ appStore, db }: { appStore: AppStore; db: AppDatabas
   }
 
   function handleCreateCv() {
-    const name = window.prompt("Nombre para el nuevo CV (por ejemplo, el puesto al que aplica):");
+    const name = window.prompt(t("createCvPrompt"));
     if (!name) return;
     const { projectId } = appStore.createCVProject({ name });
     setView({ type: "cv", projectId });
   }
 
   function handleDeleteCv(projectId: string, name: string) {
-    if (!window.confirm(`¿Enviar "${name}" a la papelera?`)) return;
+    if (!window.confirm(`${t("sendNamedToTrashPrefix")}${name}${t("sendNamedToTrashSuffix")}`)) return;
     appStore.trashCVProject(projectId);
   }
 
   function handleCreateTemplate() {
-    const name = window.prompt("Nombre para la nueva template:");
+    const name = window.prompt(t("newTemplatePrompt"));
     if (!name) return;
     const { templateId } = appStore.createTemplate(name);
     setView({ type: "template", templateId });
@@ -144,21 +144,21 @@ export function Dashboard({ appStore, db }: { appStore: AppStore; db: AppDatabas
     const text = await file.text();
     if (
       !window.confirm(
-        "¿Reemplazar TODA tu base de datos actual por el contenido de este archivo? Esta acción no se puede deshacer."
+        t("replaceDatabaseConfirm")
       )
     ) {
       return;
     }
     try {
       appStore.importDatabase(text);
-      window.alert("Base de datos importada correctamente.");
+      window.alert(t("databaseImportSuccess"));
     } catch (err) {
-      window.alert(`No se pudo importar: ${err instanceof Error ? err.message : String(err)}`);
+      window.alert(`${t("databaseImportErrorPrefix")}${err instanceof Error ? err.message : String(err)}`);
     }
   }
 
   function handleClearHistory() {
-    if (!window.confirm("¿Borrar todo el historial de eventos? Esta acción no se puede deshacer.")) return;
+    if (!window.confirm(t("clearHistoryConfirm"))) return;
     appStore.clearHistory();
   }
 
@@ -220,7 +220,7 @@ export function Dashboard({ appStore, db }: { appStore: AppStore; db: AppDatabas
                   className="link-button link-button--danger"
                   onClick={() => handleDeleteCv(project.id, project.name)}
                 >
-                  Eliminar
+                  {t("delete")}
                 </button>
               </li>
             );

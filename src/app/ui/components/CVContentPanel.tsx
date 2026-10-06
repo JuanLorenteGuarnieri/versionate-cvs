@@ -14,15 +14,7 @@ import { SUPPORTED_DISPLAY_LANGUAGES } from "../../../domain/i18n.js";
 import { moveItem } from "../../state/arrayReorder.js";
 import { SectionComposer } from "./SectionComposer.js";
 import { SortableRow } from "./SortableRow.js";
-
-const LANGUAGE_NAMES: Record<string, string> = {
-  es: "Español",
-  en: "English",
-  fr: "Français",
-  de: "Deutsch",
-  pt: "Português",
-  it: "Italiano",
-};
+import { useUILanguage } from "../UILanguageContext.js";
 
 /**
  * Solo las secciones que YA tienen contenido en este CV son reordenables:
@@ -32,6 +24,7 @@ const LANGUAGE_NAMES: Record<string, string> = {
  * el siguiente render (aparece al final).
  */
 export function CVContentPanel({ appStore, db, version }: { appStore: AppStore; db: AppDatabase; version: CVVersion }) {
+  const { t, getLanguageDisplayName } = useUILanguage();
   const sortedSections = [...db.sections].sort((a, b) => a.order - b.order);
 
   const usedInstances = [...version.sections].filter((s) => s.items.length > 0).sort((a, b) => a.order - b.order);
@@ -61,26 +54,25 @@ export function CVContentPanel({ appStore, db, version }: { appStore: AppStore; 
   return (
     <div className="cv-content-panel">
       <label className="cv-content-panel__language entity-form__field">
-        <span>Idioma de visualización</span>
+        <span>{t("displayLanguageLabel")}</span>
         <select
           value={version.displayLanguage ?? "en"}
           onChange={(e) => appStore.setCvDisplayLanguage(version.id, e.target.value)}
         >
           {SUPPORTED_DISPLAY_LANGUAGES.map((lang) => (
             <option key={lang} value={lang}>
-              {LANGUAGE_NAMES[lang] ?? lang}
+              {getLanguageDisplayName(lang)}
             </option>
           ))}
         </select>
         <span className="cv-content-panel__language-hint">
-          Cambia el idioma de las fechas y de los títulos de sección/etiquetas que sigan en su
-          valor por defecto — el contenido que ya hayas escrito o renombrado a mano no se toca.
+          {t("displayLanguageHint")}
         </span>
       </label>
 
       {usedSections.length === 0 ? (
         <p className="empty-state">
-          Todavía no hay contenido en este CV. Añade algo desde "Sin usar todavía", más abajo.
+          {t("noCvContentYet")}
         </p>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleSectionDragEnd}>
@@ -100,7 +92,7 @@ export function CVContentPanel({ appStore, db, version }: { appStore: AppStore; 
 
       {unusedSections.length > 0 && (
         <>
-          <h3 className="cv-content-panel__heading">Sin usar todavía</h3>
+          <h3 className="cv-content-panel__heading">{t("unusedYet")}</h3>
           <div className="cv-content-panel__unused">
             {unusedSections.map((section) => (
               <SectionComposer key={section.id} appStore={appStore} db={db} version={version} section={section} />

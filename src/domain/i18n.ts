@@ -31,6 +31,10 @@ const LOCALE_BY_LANGUAGE: Record<string, string> = {
   de: "de-DE",
   pt: "pt-PT",
   it: "it-IT",
+  zh: "zh-CN",
+  ja: "ja-JP",
+  hi: "hi-IN",
+  ar: "ar-EG",
 };
 
 export const SUPPORTED_DISPLAY_LANGUAGES = Object.keys(LOCALE_BY_LANGUAGE);
@@ -49,6 +53,10 @@ const CURRENT_LABEL_BY_LANGUAGE: Record<string, string> = {
   de: "Heute",
   pt: "Atualidade",
   it: "Presente",
+  zh: "至今",
+  ja: "現在",
+  hi: "वर्तमान",
+  ar: "حتى الآن",
 };
 
 export function currentLabelForDisplayLanguage(lang: string | null | undefined): string {
@@ -107,6 +115,30 @@ const LABEL_TRANSLATIONS: Record<string, Record<string, string>> = {
     Organization: "Organización",
     Relation: "Relación",
     Contact: "Contacto",
+  },
+  zh: {
+    "Personal information": "个人信息", Experience: "工作经历", Education: "教育经历", Projects: "项目", Skills: "技能", Languages: "语言",
+    Certifications: "证书", Awards: "奖项", Publications: "出版物", Courses: "课程", Volunteering: "志愿服务", References: "推荐人",
+    "Full name": "姓名", "Headline / role": "标题 / 职位", Email: "电子邮箱", Phone: "电话", Location: "地点", "Links (portfolio, GitHub, LinkedIn...)": "链接（作品集、GitHub、LinkedIn…）", Links: "链接",
+    Summary: "简介", Role: "职位", Company: "公司", Dates: "日期", Description: "描述", Technologies: "技术", Degree: "学位", Institution: "院校", Title: "标题", Subtitle: "副标题", Skill: "技能", Level: "级别", Language: "语言", Tool: "工具", "Programming Languages": "编程语言", "Soft Skills": "软技能", Name: "名称", Issuer: "颁发机构", Date: "日期", Venue: "发表平台", Organization: "组织", Relation: "关系", Contact: "联系方式",
+  },
+  ja: {
+    "Personal information": "個人情報", Experience: "職務経験", Education: "学歴", Projects: "プロジェクト", Skills: "スキル", Languages: "言語",
+    Certifications: "資格", Awards: "受賞歴", Publications: "出版物", Courses: "講座", Volunteering: "ボランティア", References: "推薦者",
+    "Full name": "氏名", "Headline / role": "見出し / 職種", Email: "メールアドレス", Phone: "電話番号", Location: "所在地", "Links (portfolio, GitHub, LinkedIn...)": "リンク（ポートフォリオ、GitHub、LinkedIn…）", Links: "リンク",
+    Summary: "概要", Role: "職種", Company: "会社", Dates: "期間", Description: "説明", Technologies: "技術", Degree: "学位", Institution: "教育機関", Title: "タイトル", Subtitle: "サブタイトル", Skill: "スキル", Level: "レベル", Language: "言語", Tool: "ツール", "Programming Languages": "プログラミング言語", "Soft Skills": "ソフトスキル", Name: "名前", Issuer: "発行元", Date: "日付", Venue: "掲載先", Organization: "団体", Relation: "関係", Contact: "連絡先",
+  },
+  hi: {
+    "Personal information": "व्यक्तिगत जानकारी", Experience: "अनुभव", Education: "शिक्षा", Projects: "परियोजनाएँ", Skills: "कौशल", Languages: "भाषाएँ",
+    Certifications: "प्रमाणपत्र", Awards: "पुरस्कार", Publications: "प्रकाशन", Courses: "पाठ्यक्रम", Volunteering: "स्वयंसेवा", References: "संदर्भ",
+    "Full name": "पूरा नाम", "Headline / role": "शीर्षक / भूमिका", Email: "ईमेल", Phone: "फ़ोन", Location: "स्थान", "Links (portfolio, GitHub, LinkedIn...)": "लिंक (पोर्टफ़ोलियो, GitHub, LinkedIn...)" , Links: "लिंक",
+    Summary: "सारांश", Role: "भूमिका", Company: "कंपनी", Dates: "तारीखें", Description: "विवरण", Technologies: "तकनीक", Degree: "डिग्री", Institution: "संस्थान", Title: "शीर्षक", Subtitle: "उपशीर्षक", Skill: "कौशल", Level: "स्तर", Language: "भाषा", Tool: "टूल", "Programming Languages": "प्रोग्रामिंग भाषाएँ", "Soft Skills": "सॉफ्ट स्किल", Name: "नाम", Issuer: "जारीकर्ता", Date: "तारीख", Venue: "प्रकाशन स्थान", Organization: "संगठन", Relation: "संबंध", Contact: "संपर्क",
+  },
+  ar: {
+    "Personal information": "المعلومات الشخصية", Experience: "الخبرة", Education: "التعليم", Projects: "المشروعات", Skills: "المهارات", Languages: "اللغات",
+    Certifications: "الشهادات", Awards: "الجوائز", Publications: "المنشورات", Courses: "الدورات", Volunteering: "التطوع", References: "التوصيات",
+    "Full name": "الاسم الكامل", "Headline / role": "العنوان / المسمى الوظيفي", Email: "البريد الإلكتروني", Phone: "الهاتف", Location: "الموقع", "Links (portfolio, GitHub, LinkedIn...)": "روابط (معرض الأعمال وGitHub وLinkedIn...)" , Links: "الروابط",
+    Summary: "الملخص", Role: "المسمى الوظيفي", Company: "الشركة", Dates: "التواريخ", Description: "الوصف", Technologies: "التقنيات", Degree: "الدرجة العلمية", Institution: "المؤسسة التعليمية", Title: "العنوان", Subtitle: "العنوان الفرعي", Skill: "المهارة", Level: "المستوى", Language: "اللغة", Tool: "الأداة", "Programming Languages": "لغات البرمجة", "Soft Skills": "المهارات الشخصية", Name: "الاسم", Issuer: "الجهة المانحة", Date: "التاريخ", Venue: "مكان النشر", Organization: "المنظمة", Relation: "صلة القرابة", Contact: "جهة الاتصال",
   },
 };
 

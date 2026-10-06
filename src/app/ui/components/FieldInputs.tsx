@@ -1,6 +1,7 @@
 import type { FieldDefinition, FieldValue, LinkListEntry } from "../../../domain/model/types.js";
 import { plainTextToRichText, richTextToPlainText } from "../../../domain/richtext.js";
 import { isDateRangeValue, isLinkListValue, isRichTextDoc } from "../../../domain/fieldValueGuards.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 /**
  * Renderiza un formulario completo a partir de un fieldSchema de sección.
@@ -16,6 +17,7 @@ export function FieldInputs({
   values: Record<string, FieldValue>;
   onChange: (next: Record<string, FieldValue>) => void;
 }) {
+  const { t } = useUILanguage();
   function setField(key: string, value: FieldValue) {
     onChange({ ...values, [key]: value });
   }
@@ -30,7 +32,7 @@ export function FieldInputs({
             {field.label}
             {field.required ? " *" : ""}
           </span>
-          <FieldInput field={field} value={values[field.key] ?? null} onChange={(v) => setField(field.key, v)} />
+          <FieldInput field={field} value={values[field.key] ?? null} onChange={(v) => setField(field.key, v)} t={t} />
         </label>
       ))}
     </>
@@ -41,10 +43,12 @@ function FieldInput({
   field,
   value,
   onChange,
+  t,
 }: {
   field: FieldDefinition;
   value: FieldValue;
   onChange: (value: FieldValue) => void;
+  t: (key: string) => string;
 }) {
   switch (field.type) {
     case "text":
@@ -83,7 +87,7 @@ function FieldInput({
             onChange={(e) => onChange(plainTextToRichText(e.target.value))}
           />
           <span className="richtext-input__hint">
-            "· " al principio de línea = viñeta · *negrita* · **cursiva**
+            {t("richTextSyntaxHint")}
           </span>
         </div>
       );
@@ -106,13 +110,13 @@ function FieldInput({
         <span className="daterange-input">
           <input
             type="date"
-            aria-label="Fecha de inicio"
+            aria-label={t("startDate")}
             value={range.start ?? ""}
             onChange={(e) => onChange({ ...range, start: e.target.value })}
           />
           <input
             type="date"
-            aria-label="Fecha de fin"
+            aria-label={t("endDate")}
             value={range.end ?? ""}
             disabled={range.current === true}
             onChange={(e) => onChange({ ...range, end: e.target.value })}
@@ -123,7 +127,7 @@ function FieldInput({
               checked={range.current === true}
               onChange={(e) => onChange({ ...range, current: e.target.checked })}
             />
-            Actual
+            {t("current")}
           </label>
         </span>
       );
@@ -134,7 +138,7 @@ function FieldInput({
       return (
         <input
           type="text"
-          placeholder="separado, por, comas"
+          placeholder={t("commaSeparated")}
           value={Array.isArray(value) ? value.join(", ") : ""}
           onChange={(e) =>
             onChange(
@@ -169,23 +173,23 @@ function FieldInput({
             <div key={i} className="linklist-input__row">
               <input
                 type="text"
-                placeholder="Texto a mostrar (vacío = se adivina del dominio)"
+                placeholder={t("linkLabelPlaceholder")}
                 value={entry.label}
                 onChange={(e) => updateEntry(i, { label: e.target.value })}
               />
               <input
                 type="url"
-                placeholder="https://..."
+                placeholder={t("urlPlaceholder")}
                 value={entry.url}
                 onChange={(e) => updateEntry(i, { url: e.target.value })}
               />
               <button type="button" className="link-button link-button--danger" onClick={() => removeEntry(i)}>
-                Quitar
+                {t("remove")}
               </button>
             </div>
           ))}
           <button type="button" className="link-button" onClick={addEntry}>
-            + Añadir enlace
+            {t("addLink")}
           </button>
         </div>
       );

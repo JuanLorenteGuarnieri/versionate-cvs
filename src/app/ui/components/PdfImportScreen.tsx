@@ -6,6 +6,8 @@ import { buildImportDraft, type PdfImportDraft } from "../../../domain/pdfImport
 import { mapEntryToFields, type DraftEntry } from "../../../domain/pdfImport/fieldMapping.js";
 import { findSimilarElements, type DedupCandidate } from "../../../domain/pdfImport/mapping/dedup.js";
 import { FieldInputs } from "./FieldInputs.js";
+import { useUILanguage } from "../UILanguageContext.js";
+import { ScreenHeader } from "./ScreenHeader.js";
 // Convención de Vite para obtener la URL del asset ya empaquetado, no su
 // contenido (ver vite/client.d.ts). El worker de pdf.js es obligatorio en
 // el navegador; sin esto, extractPdfText falla con "No
@@ -23,13 +25,15 @@ setPdfWorkerSrc(pdfWorkerUrl);
  * (handleImport), para que lo que se ve en pantalla sea exactamente lo que
  * se va a crear.
  */
-const GENERIC_NEW_SECTION_FIELDS: Array<Omit<FieldDefinition, "id">> = [
-  { key: "title", label: "Título", type: "text", order: 0 },
-  { key: "dateRange", label: "Fechas", type: "daterange", order: 1 },
-  { key: "description", label: "Descripción", type: "richtext", order: 2 },
-];
+function genericNewSectionFields(t: (key: string) => string): Array<Omit<FieldDefinition, "id">> {
+  return [
+    { key: "title", label: t("title"), type: "text", order: 0 },
+    { key: "dateRange", label: t("dates"), type: "daterange", order: 1 },
+    { key: "description", label: t("description"), type: "richtext", order: 2 },
+  ];
+}
 
-function genericNewSectionDefinition(name: string): SectionDefinition {
+function genericNewSectionDefinition(name: string, t: (key: string) => string): SectionDefinition {
   return {
     id: "new",
     key: "new",
@@ -38,7 +42,7 @@ function genericNewSectionDefinition(name: string): SectionDefinition {
     order: 0,
     createdAt: "",
     updatedAt: "",
-    fieldSchema: GENERIC_NEW_SECTION_FIELDS.map((f, i) => ({ ...f, id: `tmp-field-${i}` })),
+    fieldSchema: genericNewSectionFields(t).map((f, i) => ({ ...f, id: `tmp-field-${i}` })),
   };
 }
 
@@ -74,10 +78,10 @@ interface EditableSection {
 }
 
 /** Resuelve a qué SectionDefinition apunta ahora mismo un EditableSection — incluida la "virtual" para el caso "new", usada solo para saber qué campos mostrar en la revisión. */
-function resolveTargetSection(section: Pick<EditableSection, "targetSectionId" | "newSectionName" | "headingText">, db: AppDatabase): SectionDefinition | null {
+function resolveTargetSection(section: Pick<EditableSection, "targetSectionId" | "newSectionName" | "headingText">, db: AppDatabase, t: (key: string) => string): SectionDefinition | null {
   if (section.targetSectionId === "skip") return null;
   if (section.targetSectionId === "new") {
-    return genericNewSectionDefinition(section.newSectionName || section.headingText);
+    return genericNewSectionDefinition(section.newSectionName || section.headingText, t);
   }
   return db.sections.find((s) => s.id === section.targetSectionId) ?? null;
 }
@@ -114,11 +118,11 @@ function buildEditableEntries(rawEntries: DraftEntry[], targetSection: SectionDe
   });
 }
 
-function buildEditableSections(draft: PdfImportDraft, db: AppDatabase): EditableSection[] {
+function buildEditableSections(draft: PdfImportDraft, db: AppDatabase, t: (key: string) => string): EditableSection[] {
   return draft.sections.map((section) => {
     const matched = section.matchedSectionKey ? db.sections.find((s) => s.key === section.matchedSectionKey) : undefined;
     const targetSectionId: EditableSection["targetSectionId"] = matched ? matched.id : "new";
-    const targetSection = matched ?? genericNewSectionDefinition(section.headingText);
+    const targetSection = matched ?? genericNewSectionDefinition(section.headingText, t);
     return {
       headingText: section.headingText,
       targetSectionId,
@@ -153,11 +157,12 @@ export function PdfImportScreen({
   db: AppDatabase;
   onBack: () => void;
 }) {
+  const { t } = useUILanguage();
   const [status, setStatus] = useState<"idle" | "processing" | "review" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [draft, setDraft] = useState<PdfImportDraft | null>(null);
   const [editableSections, setEditableSections] = useState<EditableSection[]>([]);
-  const [createTemplateOption, setCreateTemplateOption] = useState({ enabled: true, name: "Importada de PDF" });
+  const [createTemplateOption, setCreateTemplateOption] = useState(() => ({ enabled: true, name: t("pdfTemplateDefault") }));
 
   async function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -169,7 +174,7 @@ export function PdfImportScreen({
       const extracted = await extractPdfText(new Uint8Array(buffer));
       const nextDraft = buildImportDraft(extracted);
       setDraft(nextDraft);
-      setEditableSections(buildEditableSections(nextDraft, db));
+      setEditableSections(buildEditableSections(nextDraft, db, t));
       setStatus("review");
     } catch (err) {
       setStatus("error");
@@ -182,7 +187,7 @@ export function PdfImportScreen({
       prev.map((s, i) => {
         if (i !== index) return s;
         const next = { ...s, targetSectionId };
-        const targetSection = resolveTargetSection(next, db);
+        const targetSection = resolveTargetSection(next, db, t);
         return { ...next, entries: buildEditableEntries(next.entries.map((e) => e.rawEntry), targetSection, db) };
       })
     );
@@ -234,7 +239,7 @@ export function PdfImportScreen({
       if (targetSectionId === "new") {
         const created = appStore.addCustomSection({
           defaultTitle: section.newSectionName || section.headingText,
-          fields: GENERIC_NEW_SECTION_FIELDS,
+          fields: genericNewSectionFields(t),
         });
         targetSectionId = created.sectionId;
       }
@@ -243,16 +248,16 @@ export function PdfImportScreen({
         if (entry.dedupChoice !== "new") {
           const existingElement = db.elements.find((el) => el.id === entry.dedupChoice);
           if (existingElement) {
-            appStore.forkVariant(existingElement.defaultVariantId, "Importado de PDF", entry.fields);
+            appStore.forkVariant(existingElement.defaultVariantId, t("pdfVariantDefault"), entry.fields);
             continue;
           }
         }
-        appStore.createElement({ sectionId: targetSectionId, variantName: "Importado de PDF", fields: entry.fields });
+        appStore.createElement({ sectionId: targetSectionId, variantName: t("pdfVariantDefault"), fields: entry.fields });
       }
     }
 
     if (createTemplateOption.enabled && draft) {
-      const { templateId } = appStore.createTemplate(createTemplateOption.name || "Importada de PDF");
+      const { templateId } = appStore.createTemplate(createTemplateOption.name || t("pdfTemplateDefault"));
       const created = appStore.getState().db!.templates.find((t) => t.id === templateId)!;
       appStore.updateTemplate(templateId, {
         typography: {
@@ -269,35 +274,32 @@ export function PdfImportScreen({
 
   return (
     <main className="pdf-import">
-      <button className="link-button" onClick={onBack}>
-        ← Volver
-      </button>
-      <h1>Importar CV desde PDF</h1>
+      <ScreenHeader title={t("importPdfTitle")} onBack={onBack} />
       <p className="pdf-import__subtitle">
-        Nada se guarda todavía: revisa y edita lo detectado antes de importarlo.
+        {t("pdfImportSubtitle")}
       </p>
 
       {status === "idle" && (
         <label className="pdf-import__file-picker">
-          <span>Selecciona un PDF</span>
+          <span>{t("selectPdf")}</span>
           <input type="file" accept="application/pdf" onChange={handleFileChange} />
         </label>
       )}
 
-      {status === "processing" && <p className="app-status">Leyendo el PDF…</p>}
+      {status === "processing" && <p className="app-status">{t("readingPdf")}</p>}
 
       {status === "error" && (
-        <p className="app-status app-status--error">No se pudo procesar el PDF: {errorMessage}</p>
+        <p className="app-status app-status--error">{t("pdfProcessingErrorPrefix")}{errorMessage}</p>
       )}
 
       {status === "review" && draft && (
         <>
           {editableSections.length === 0 && (
-            <p className="empty-state">No se reconoció ninguna sección en este PDF. Prueba con otro archivo.</p>
+            <p className="empty-state">{t("noPdfSections")}</p>
           )}
 
           {editableSections.map((section, sIndex) => {
-            const targetSection = resolveTargetSection(section, db);
+            const targetSection = resolveTargetSection(section, db, t);
             return (
               <div key={sIndex} className="pdf-import__section">
                 <div className="pdf-import__section-header">
@@ -306,8 +308,8 @@ export function PdfImportScreen({
                     value={section.targetSectionId}
                     onChange={(e) => updateSectionTarget(sIndex, e.target.value)}
                   >
-                    <option value="skip">No importar esta sección</option>
-                    <option value="new">Crear sección nueva…</option>
+                    <option value="skip">{t("skipImportSection")}</option>
+                    <option value="new">{t("createNewSection")}</option>
                     {db.sections.map((s) => (
                       <option key={s.id} value={s.id}>
                         → {s.defaultTitle}
@@ -318,7 +320,7 @@ export function PdfImportScreen({
                     <input
                       value={section.newSectionName}
                       onChange={(e) => updateSectionNewName(sIndex, e.target.value)}
-                      placeholder="Nombre de la sección nueva"
+                      placeholder={t("newSectionNamePlaceholder")}
                     />
                   )}
                 </div>
@@ -333,19 +335,19 @@ export function PdfImportScreen({
                           checked={entry.include}
                           onChange={(e) => updateEntryInclude(sIndex, entry.id, e.target.checked)}
                         />
-                        Importar
+                        {t("import")}
                       </label>
                       {entry.dedupCandidates.length > 0 && (
                         <label className="pdf-import__dedup">
-                          ¿Es lo mismo que algo que ya tienes?{" "}
+                          {t("dedupQuestion")}{" "}
                           <select
                             value={entry.dedupChoice}
                             onChange={(e) => updateEntryDedupChoice(sIndex, entry.id, e.target.value)}
                           >
-                            <option value="new">Crear elemento nuevo</option>
+                            <option value="new">{t("createNewItem")}</option>
                             {entry.dedupCandidates.map((c) => (
                               <option key={c.elementId} value={c.elementId}>
-                                Añadir como variante nueva de "{c.label}" ({Math.round(c.similarity * 100)}% parecido)
+                                {t("addAsNewVariantPrefix")}{c.label}{t("similarityPercentPrefix")}{Math.round(c.similarity * 100)}{t("similarityPercentSuffix")}
                               </option>
                             ))}
                           </select>
@@ -365,10 +367,10 @@ export function PdfImportScreen({
           })}
 
           <div className="pdf-import__style">
-            <h2 className="template-editor__group-title">Estilo detectado</h2>
+            <h2 className="template-editor__group-title">{t("detectedStyle")}</h2>
             <p className="pdf-import__style-summary">
-              Tamaño de texto: {draft.styleProposal.baseFontSize}pt · Escala de títulos:{" "}
-              {draft.styleProposal.headingScale}× · Márgenes: {draft.styleProposal.margins.top}/
+              {t("textSize")}{draft.styleProposal.baseFontSize}pt{t("headingScale")}
+              {draft.styleProposal.headingScale}×{t("margins")}{draft.styleProposal.margins.top}/
               {draft.styleProposal.margins.right}/{draft.styleProposal.margins.bottom}/
               {draft.styleProposal.margins.left}mm
             </p>
@@ -378,7 +380,7 @@ export function PdfImportScreen({
                 checked={createTemplateOption.enabled}
                 onChange={(e) => setCreateTemplateOption((o) => ({ ...o, enabled: e.target.checked }))}
               />
-              Crear una template nueva con este estilo:
+              {t("createTemplateFromStyle")}
               <input
                 value={createTemplateOption.name}
                 onChange={(e) => setCreateTemplateOption((o) => ({ ...o, name: e.target.value }))}
@@ -389,10 +391,10 @@ export function PdfImportScreen({
 
           <div className="entity-form__actions">
             <button className="primary-button" onClick={handleImport}>
-              Importar lo seleccionado
+              {t("importSelected")}
             </button>
             <button className="link-button" onClick={onBack}>
-              Descartar todo
+              {t("discardAll")}
             </button>
           </div>
         </>

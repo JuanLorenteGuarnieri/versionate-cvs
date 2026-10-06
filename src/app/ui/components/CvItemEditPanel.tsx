@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { AppStore } from "../../state/appStore.js";
 import type { FieldDefinition, FieldValue, Variant } from "../../../domain/model/types.js";
 import { FieldInputs } from "./FieldInputs.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 /**
  * Panel de edición inline para el item de un CV concreto (§11 del
@@ -49,6 +50,7 @@ export function CvItemEditPanel({
   onVariantDeleted: (fallbackVariantId: string | null) => void;
   onDone: () => void;
 }) {
+  const { t } = useUILanguage();
   const [draft, setDraft] = useState<Record<string, FieldValue>>(variant.fields);
   // Feedback transitorio: "Guardar" ya no cierra el panel (bug real
   // reportado: obligaba a volver a pulsar "Editar" para seguir tocando el
@@ -66,7 +68,7 @@ export function CvItemEditPanel({
   }
 
   function handleSaveAsVariant() {
-    const name = window.prompt("Nombre para la nueva variante:", `${variant.name} (copia)`);
+    const name = window.prompt(t("newVariantPrompt"), `${variant.name}${t("variantCopySuffix")}`);
     if (!name) return;
     const { variantId } = appStore.forkVariant(variant.id, name, draft);
     onVariantForked(variantId);
@@ -74,7 +76,7 @@ export function CvItemEditPanel({
 
   /** Antes solo se podía poner un nombre a una variante al crearla ("Guardar como variante"). */
   function handleRename() {
-    const name = window.prompt("Nuevo nombre para esta variante:", variant.name);
+    const name = window.prompt(t("renameVariantPrompt"), variant.name);
     if (!name) return;
     try {
       appStore.renameVariant(variant.id, name);
@@ -93,13 +95,10 @@ export function CvItemEditPanel({
     const referencedByCvVersionIds = appStore.findReferences("variant", variant.id);
     let message =
       otherVariants.length === 0
-        ? `"${variant.name}" es la única variante de "${elementLabel}": eliminarla enviará también el ` +
-          "elemento completo a la papelera."
-        : `¿Enviar la variante "${variant.name}" a la papelera?`;
+        ? `"${variant.name}${t("variantDeleteOnlyPrefix")}${elementLabel}${t("variantDeleteOnlySuffix")}`
+        : `${t("variantDeleteConfirmPrefix")}${variant.name}${t("variantDeleteConfirmSuffix")}`;
     if (referencedByCvVersionIds.length > 0) {
-      message +=
-        ` Se usa en ${referencedByCvVersionIds.length} versión(es) de CV (incluida esta): quedarán ` +
-        "con una referencia rota hasta que la restaures.";
+      message += `${t("referencedByPrefix")}${referencedByCvVersionIds.length}${t("referencedByThisSuffix")}`;
     }
     if (!window.confirm(message)) return;
     appStore.trashVariant(variant.id);
@@ -110,27 +109,25 @@ export function CvItemEditPanel({
   return (
     <div className="cv-item-edit-panel">
       <p className="cv-item-edit-panel__hint">
-        Editando "{variant.name}" de {elementLabel}.{" "}
+        {t("editingVariantPrefix")}{variant.name}{t("editingVariantMiddle")}{elementLabel}{t("editingVariantHint")}{" "}
         <button className="link-button cv-item-edit-panel__rename-button" onClick={handleRename}>
-          Renombrar
+          {t("rename")}
         </button>{" "}
-        "Guardar" cambia esta variante en todos los CVs que la usan; "Guardar como variante" crea
-        una nueva y la deja seleccionada solo aquí.
       </p>
       <FieldInputs fieldSchema={fieldSchema} values={draft} onChange={setDraft} />
       <div className="cv-item-edit-panel__actions">
         <button className="primary-button" onClick={handleSave}>
-          Guardar
+          {t("save")}
         </button>
-        {justSaved && <span className="cv-item-edit-panel__saved">✓ Guardado</span>}
+        {justSaved && <span className="cv-item-edit-panel__saved">{t("saved")}</span>}
         <button className="secondary-button" onClick={handleSaveAsVariant}>
-          Guardar como variante
+          {t("saveAsVariant")}
         </button>
         <button className="link-button link-button--danger" onClick={handleDeleteVariant}>
-          Eliminar esta variante
+          {t("deleteVariant")}
         </button>
         <button className="link-button" onClick={onDone}>
-          Cerrar
+          {t("close")}
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { useUILanguage } from "../UILanguageContext.js";
 import type { AppDatabase } from "../../../domain/model/types.js";
 import { formatTimestampForDisplay } from "../../../domain/formatting.js";
+import { ScreenHeader } from "./ScreenHeader.js";
 
 /**
  * Fase 11 del plan (historial visible en UI, §16 del contexto). Solo
@@ -13,10 +14,7 @@ export function HistoryScreen({ db, onBack }: { db: AppDatabase; onBack: () => v
 
   return (
     <main className="history-screen">
-      <button className="link-button" onClick={onBack}>
-        {t("back")}
-      </button>
-      <h1>{t("historyTitle")}</h1>
+      <ScreenHeader title={t("historyTitle")} onBack={onBack} />
 
       {entries.length === 0 ? (
         <p className="empty-state">{t("historyEmpty")}</p>

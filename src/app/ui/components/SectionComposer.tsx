@@ -16,6 +16,7 @@ import { moveItem } from "../../state/arrayReorder.js";
 import { sortAlpha } from "../sortAlpha.js";
 import { SortableRow, type DragHandleProps } from "./SortableRow.js";
 import { CvItemEditPanel } from "./CvItemEditPanel.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 /**
  * Composer de una sección dentro de un CV. `dragHandle` es opcional: cuando
@@ -37,6 +38,7 @@ export function SectionComposer({
   section: SectionDefinition;
   dragHandle?: DragHandleProps;
 }) {
+  const { t } = useUILanguage();
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -97,12 +99,10 @@ export function SectionComposer({
     const referencedByCvVersionIds = appStore.findReferences("element", elementId);
     if (referencedByCvVersionIds.length > 0) {
       const proceed = window.confirm(
-        `"${label}" se usa en ${referencedByCvVersionIds.length} versión(es) de CV (incluida esta). ` +
-          "Si continúas, esas versiones quedarán con una referencia rota hasta que lo restaures. " +
-          "¿Enviar a la papelera de todas formas?"
+        `${t("sendNamedToTrashPrefix")}${label}${t("sendNamedToTrashSuffix")} ${t("referencedByPrefix")}${referencedByCvVersionIds.length}${t("referencedByThisSuffix")}`
       );
       if (!proceed) return;
-    } else if (!window.confirm(`¿Enviar "${label}" a la papelera?`)) {
+    } else if (!window.confirm(`${t("sendNamedToTrashPrefix")}${label}${t("sendNamedToTrashSuffix")}`)) {
       return;
     }
     setEditingElementId(null);
@@ -117,7 +117,7 @@ export function SectionComposer({
             className="drag-handle"
             {...dragHandle.attributes}
             {...dragHandle.listeners}
-            aria-label={`Reordenar sección ${section.defaultTitle}`}
+            aria-label={`${t("reorderSectionPrefix")}${section.defaultTitle}`}
           >
             ⠿
           </button>
@@ -148,7 +148,7 @@ export function SectionComposer({
                             className="drag-handle"
                             {...handle.attributes}
                             {...handle.listeners}
-                            aria-label={`Reordenar ${guessElementLabel(element, db)}`}
+                            aria-label={`${t("reorderItemPrefix")}${guessElementLabel(element, db)}`}
                           >
                             ⠿
                           </button>
@@ -166,16 +166,16 @@ export function SectionComposer({
                             className="link-button"
                             onClick={() => setEditingElementId(editingElementId === element.id ? null : element.id)}
                           >
-                            {editingElementId === element.id ? "Cerrar" : "Editar"}
+                            {editingElementId === element.id ? t("close") : t("edit")}
                           </button>
                           <button
                             className="link-button link-button--danger"
                             onClick={() => handleDeleteElement(element.id, guessElementLabel(element, db))}
                           >
-                            Eliminar
+                            {t("delete")}
                           </button>
                           <button className="link-button link-button--danger" onClick={() => removeElement(element.id)}>
-                            Quitar
+                            {t("remove")}
                           </button>
                         </div>
                         {editingElementId === element.id &&
@@ -218,7 +218,7 @@ export function SectionComposer({
 
       {availableElements.length > 0 && (
         <div className="section-composer__available">
-          <p className="section-composer__available-label">Añadir:</p>
+          <p className="section-composer__available-label">{t("addLabel")}</p>
           <ul className="section-composer__available-list">
             {availableElements.map((element) => (
               <li key={element.id}>

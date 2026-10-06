@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useUILanguage } from "../UILanguageContext.js";
 
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 3;
@@ -43,6 +44,7 @@ function clamp(value: number, min: number, max: number): number {
  * pase lo que pase con el zoom que tuvieras puesto en ese momento.
  */
 export function PreviewViewport({ children }: { children: ReactNode }) {
+  const { t } = useUILanguage();
   const scrollRef = useRef<HTMLDivElement>(null);
   const measureRef = useRef<HTMLDivElement>(null);
   const [naturalSize, setNaturalSize] = useState({ width: 0, height: 0, firstPageHeight: 0 });
@@ -282,7 +284,7 @@ export function PreviewViewport({ children }: { children: ReactNode }) {
           type="button"
           className="preview-viewport__fullscreen-button"
           onClick={toggleFullscreen}
-          title={isFullscreen ? "Salir de pantalla completa (Esc)" : "Pantalla completa"}
+          title={isFullscreen ? t("fullscreenExit") : t("fullscreen")}
         >
           {isFullscreen ? "✕" : "⛶"}
         </button>
@@ -291,18 +293,18 @@ export function PreviewViewport({ children }: { children: ReactNode }) {
             type="button"
             className="preview-viewport__zoom-button"
             onClick={() => zoomTowardViewportCenter(1 / ZOOM_STEP)}
-            title="Alejar (Ctrl −)"
+            title={t("zoomOut")}
           >
             −
           </button>
-          <button type="button" className="preview-viewport__zoom-level" onClick={resetZoom} title="Ajustar a la ventana (Ctrl 0)">
+          <button type="button" className="preview-viewport__zoom-level" onClick={resetZoom} title={t("fitToWindow")}>
             {Math.round(zoom * 100)}%
           </button>
           <button
             type="button"
             className="preview-viewport__zoom-button"
             onClick={() => zoomTowardViewportCenter(ZOOM_STEP)}
-            title="Acercar (Ctrl +)"
+            title={t("zoomIn")}
           >
             +
           </button>

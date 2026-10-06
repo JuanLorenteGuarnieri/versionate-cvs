@@ -1,10 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { currentLabelForDisplayLanguage, localeForDisplayLanguage, translateDefaultLabel } from "../i18n.js";
+import { currentLabelForDisplayLanguage, localeForDisplayLanguage, SUPPORTED_DISPLAY_LANGUAGES, translateDefaultLabel } from "../i18n.js";
 
 test("localeForDisplayLanguage mapea el código corto a un locale BCP-47", () => {
   assert.equal(localeForDisplayLanguage("es"), "es-ES");
   assert.equal(localeForDisplayLanguage("en"), "en-US");
+  assert.equal(localeForDisplayLanguage("zh"), "zh-CN");
+  assert.equal(localeForDisplayLanguage("ja"), "ja-JP");
+  assert.equal(localeForDisplayLanguage("hi"), "hi-IN");
+  assert.equal(localeForDisplayLanguage("ar"), "ar-EG");
+  assert.deepEqual(SUPPORTED_DISPLAY_LANGUAGES, ["es", "en", "fr", "de", "pt", "it", "zh", "ja", "hi", "ar"]);
 });
 
 test("localeForDisplayLanguage cae a inglés con un idioma desconocido o sin especificar", () => {
@@ -33,6 +38,9 @@ test("translateDefaultLabel es un no-op sin idioma o con inglés (la base)", () 
   assert.equal(translateDefaultLabel("Experience", "en"), "Experience");
 });
 
-test("translateDefaultLabel con un idioma sin diccionario devuelve el texto tal cual", () => {
-  assert.equal(translateDefaultLabel("Experience", "ja"), "Experience");
+test("translateDefaultLabel traduce las etiquetas predeterminadas para los nuevos idiomas", () => {
+  assert.equal(translateDefaultLabel("Experience", "zh"), "工作经历");
+  assert.equal(translateDefaultLabel("Experience", "ja"), "職務経験");
+  assert.equal(translateDefaultLabel("Experience", "hi"), "अनुभव");
+  assert.equal(translateDefaultLabel("Experience", "ar"), "الخبرة");
 });

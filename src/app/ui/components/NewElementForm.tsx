@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import type { AppStore } from "../../state/appStore.js";
 import type { FieldValue, SectionDefinition } from "../../../domain/model/types.js";
 import { FieldInputs } from "./FieldInputs.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 export function NewElementForm({
   appStore,
@@ -14,7 +15,8 @@ export function NewElementForm({
   onDone: () => void;
   onCancel: () => void;
 }) {
-  const [variantName, setVariantName] = useState("Original");
+  const { t } = useUILanguage();
+  const [variantName, setVariantName] = useState(() => t("originalVariant"));
   const [fields, setFields] = useState<Record<string, FieldValue>>({});
 
   function handleSubmit(e: FormEvent) {
@@ -26,7 +28,7 @@ export function NewElementForm({
   return (
     <form className="entity-form" onSubmit={handleSubmit}>
       <label className="entity-form__field">
-        <span>Nombre de esta primera variante</span>
+        <span>{t("firstVariantName")}</span>
         <input value={variantName} onChange={(e) => setVariantName(e.target.value)} required />
       </label>
 
@@ -34,10 +36,10 @@ export function NewElementForm({
 
       <div className="entity-form__actions">
         <button type="submit" className="primary-button">
-          Crear
+          {t("create")}
         </button>
         <button type="button" className="link-button" onClick={onCancel}>
-          Cancelar
+          {t("cancel")}
         </button>
       </div>
     </form>

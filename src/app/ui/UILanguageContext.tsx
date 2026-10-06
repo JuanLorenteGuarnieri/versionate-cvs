@@ -42,6 +42,8 @@ export function UILanguageProvider({ children }: { children: ReactNode }) {
   // Guardar en localStorage cada vez que cambie el idioma
   useEffect(() => {
     window.localStorage.setItem("uiLanguage", language);
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
   }, [language]);
 
   const setLanguage = (lang: string) => {
