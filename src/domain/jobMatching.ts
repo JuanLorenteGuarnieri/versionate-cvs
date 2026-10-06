@@ -185,6 +185,7 @@ export interface ElementJobMatch {
   /** Suma de las frecuencias (en la oferta) de cada keyword que aparece en esta variante. Ninguna unidad concreta — solo sirve para ORDENAR. */
   score: number;
   matchedKeywords: WeightedJobKeyword[];
+  availableVariants: AvailableVariantOption[];
 }
 
 /**
@@ -277,7 +278,19 @@ export function scoreElementAgainstJobKeywords(
   const scored = scoreAllVariantsForElement(element, variants, section, jobKeywords, languageTag);
   const best = bestVariantMatch(scored);
   if (!best) return null;
-  return { elementId: element.id, bestVariantId: best.variantId, score: best.score, matchedKeywords: best.matchedKeywords };
+  const availableVariants: AvailableVariantOption[] = scored.map((v) => ({
+    variantId: v.variantId,
+    variantName: v.variantName,
+    score: v.score,
+    matchedKeywords: v.matchedKeywords.map((k) => k.display),
+  }));
+  return {
+    elementId: element.id,
+    bestVariantId: best.variantId,
+    score: best.score,
+    matchedKeywords: best.matchedKeywords,
+    availableVariants,
+  };
 }
 
 /**
@@ -581,7 +594,12 @@ export function matchDatabaseToJobDescription(db: AppDatabase, jobDescriptionTex
           bestVariantId: best.variantId,
           score: best.score,
           matchedKeywords: best.matchedKeywords,
-          availableVariants: variantScores,
+          availableVariants: variantScores.map((v) => ({
+            variantId: v.variantId,
+            variantName: v.variantName,
+            score: v.score,
+            matchedKeywords: v.matchedKeywords.map((k) => k.display),
+          })),
         };
       })
       .filter((m): m is NonNullable<typeof m> => m !== null);
@@ -602,7 +620,12 @@ export function matchDatabaseToJobDescription(db: AppDatabase, jobDescriptionTex
         score: m.score,
         matchedKeywords: m.matchedKeywords.map((k) => k.display),
         defaultIncluded: selectedIds.has(m.elementId),
-        availableVariants: m.availableVariants.map((v) => ({ variantId: v.variantId, variantName: v.variantName, score: v.score, matchedKeywords: v.matchedKeywords.map((k) => k.display) })),
+        availableVariants: m.availableVariants.map((v) => ({
+          variantId: v.variantId,
+          variantName: v.variantName,
+          score: v.score,
+          matchedKeywords: v.matchedKeywords,
+        })),
       })),
     });
   }

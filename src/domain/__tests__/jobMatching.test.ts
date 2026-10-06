@@ -101,6 +101,7 @@ function fakeMatch(elementId: string, score: number, keywordStems: string[]): El
     bestVariantId: `${elementId}-v1`,
     score,
     matchedKeywords: keywordStems.map((s) => ({ stem: s, display: s, totalCount: 1, weight: 1, isTech: false })),
+    availableVariants: [],
   };
 }
 
