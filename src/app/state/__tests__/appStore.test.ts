@@ -4,10 +4,14 @@ import { createEmptyDatabase } from "../../../domain/database.js";
 import { createElement as variantsCreateElement } from "../../../domain/variants.js";
 import { createTemplate } from "../../../domain/templates.js";
 import { createCVProject, setSectionItems } from "../../../domain/cv.js";
-import { createMemoryStore } from "../../../persistence/memoryStore.js";
+import { createMemoryStore as createBaseMemoryStore } from "../../../persistence/memoryStore.js";
 import type { Store } from "../../../persistence/store.js";
 import type { AppDatabase } from "../../../domain/model/types.js";
 import { createAppStore } from "../appStore.js";
+
+function createMemoryStore(initial: AppDatabase | null = createEmptyDatabase()) {
+  return createBaseMemoryStore(initial);
+}
 
 function createCountingStore(initial: AppDatabase | null = null): Store & { saveCalls: number } {
   const base = createMemoryStore(initial);
@@ -29,7 +33,7 @@ function createCountingStore(initial: AppDatabase | null = null): Store & { save
   };
 }
 
-test("load() en un store vacío crea y persiste una AppDatabase nueva", async () => {
+test("load() en un store vacío crea y persiste una base inicial con CV de ejemplo", async () => {
   const store = createCountingStore();
   const app = createAppStore(store);
   assert.equal(app.getState().status, "idle");
@@ -37,7 +41,55 @@ test("load() en un store vacío crea y persiste una AppDatabase nueva", async ()
   await app.load();
 
   assert.equal(app.getState().status, "ready");
-  assert.ok(app.getState().db);
+  const db = app.getState().db!;
+  assert.equal(db.templates.length, 1);
+  const template = db.templates[0]!;
+  assert.equal(template.name, "Default");
+  assert.deepEqual(template.typography, {
+    fontWeight: 400,
+    headingWeight: 800,
+    headingCase: "uppercase",
+    headingLetterSpacing: 0.4,
+    textAlignment: "left",
+    fontFamily: "Inter, system-ui, sans-serif",
+    baseFontSize: 10,
+    lineHeight: 1.25,
+    headingScale: 1.25,
+  });
+  assert.deepEqual(template.colors, {
+    text: "#1a1a1a",
+    background: "#ffffff",
+    accent: "#546996",
+    muted: "#909298",
+    border: "#a0a8ba",
+  });
+  assert.deepEqual(template.spacing, {
+    paragraphSpacing: 3,
+    sectionGap: 9,
+    itemGap: 6,
+    margins: { top: 13, right: 13, bottom: 10, left: 13 },
+  });
+  assert.deepEqual(template.sectionTitleStyle, { alignment: "left", spacing: 5 });
+  assert.deepEqual(template.headerStyle, { alignment: "center", layout: "banner", nameFontSize: 31 });
+  assert.deepEqual(template.dateStyle, {});
+  assert.deepEqual(template.bulletStyle, { shape: "square", indent: 0, gap: 9 });
+  assert.deepEqual(template.separators, { style: "line", thickness: 1, borderRadius: 6 });
+  assert.deepEqual(template.linkStyle, { appearance: "accent_underline" });
+  assert.deepEqual(template.languagesStyle, { alignment: "center", mode: "columns" });
+
+  const project = db.cvProjects[0]!;
+  assert.equal(project.name, "Example CV");
+  const version = db.cvVersions.find((candidate) => candidate.id === project.activeVersionId)!;
+  assert.equal(version.templateId, template.id);
+  assert.equal(version.sections.length, db.sections.length);
+  assert.equal(db.elements.length, db.sections.length);
+  assert.equal(db.variants.length, db.sections.length);
+  for (const section of version.sections) {
+    assert.equal(section.items.length, 1);
+    const item = section.items[0]!;
+    assert.ok(db.elements.some((element) => element.id === item.elementId && element.sectionId === section.sectionDefinitionId));
+    assert.ok(db.variants.some((variant) => variant.id === item.variantId && variant.elementId === item.elementId));
+  }
   assert.equal(store.saveCalls, 1, "la primera vez se persiste inmediatamente, sin esperar cambios del usuario");
 });
 

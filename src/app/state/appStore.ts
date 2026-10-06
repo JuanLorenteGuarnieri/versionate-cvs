@@ -1,6 +1,6 @@
 import type { AppDatabase, FieldDefinition, FieldValue, Template } from "../../domain/model/types.js";
 import type { Store } from "../../persistence/store.js";
-import { createEmptyDatabase } from "../../domain/database.js";
+import { createInitialDatabase } from "../../domain/initialDatabase.js";
 import * as databaseDomain from "../../domain/database.js";
 import * as variantsDomain from "../../domain/variants.js";
 import * as trashDomain from "../../domain/trash.js";
@@ -221,9 +221,8 @@ export function createAppStore(store: Store, autosaveDelayMs = 800): AppStore {
           setState({ status: "ready", db: loaded, error: null });
           return;
         }
-        // Primera ejecución: no esperamos al primer cambio del usuario para
-        // tener algo persistido; guardamos la base de datos vacía ya.
-        const fresh = createEmptyDatabase();
+        // Primera ejecución: guardar un CV de ejemplo listo para explorar.
+        const fresh = createInitialDatabase();
         await store.save(fresh);
         setState({ status: "ready", db: fresh, error: null });
       } catch (err) {
