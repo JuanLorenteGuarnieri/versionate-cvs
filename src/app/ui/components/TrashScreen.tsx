@@ -2,6 +2,7 @@ import type { AppStore } from "../../state/appStore.js";
 import type { AppDatabase } from "../../../domain/model/types.js";
 import { describeTrashEntry } from "../../../domain/trash.js";
 import { formatTimestampForDisplay } from "../../../domain/formatting.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 /**
  * Fase 11 del plan (papelera visible en UI, §15 del contexto). La lógica
@@ -10,6 +11,7 @@ import { formatTimestampForDisplay } from "../../../domain/formatting.js";
  * las acciones del appStore.
  */
 export function TrashScreen({ appStore, db, onBack }: { appStore: AppStore; db: AppDatabase; onBack: () => void }) {
+  const { t } = useUILanguage();
   const entries = [...db.trash].sort((a, b) => b.deletedAt.localeCompare(a.deletedAt));
 
   function handleDeleteForever(entryId: string, label: string) {
@@ -27,12 +29,12 @@ export function TrashScreen({ appStore, db, onBack }: { appStore: AppStore; db: 
   return (
     <main className="trash-screen">
       <button className="link-button" onClick={onBack}>
-        ← Volver
+        {t("back")}
       </button>
-      <h1>Papelera</h1>
+      <h1>{t("trash")}</h1>
 
       {entries.length === 0 ? (
-        <p className="empty-state">La papelera está vacía.</p>
+        <p className="empty-state">{t("noItemsTrash")}</p>
       ) : (
         <>
           <ul className="trash-list">
@@ -43,18 +45,18 @@ export function TrashScreen({ appStore, db, onBack }: { appStore: AppStore; db: 
                   <div>
                     <strong>{label}</strong>
                     <div className="trash-list__meta">
-                      Eliminado el {formatTimestampForDisplay(entry.deletedAt)}
+                      {formatTimestampForDisplay(entry.deletedAt)} {t("deletedItemTrash")}
                     </div>
                   </div>
                   <div className="trash-list__actions">
                     <button className="secondary-button" onClick={() => appStore.restore(entry.id)}>
-                      Restaurar
+                      {t("restoreTrash")}
                     </button>
                     <button
                       className="link-button link-button--danger"
                       onClick={() => handleDeleteForever(entry.id, label)}
                     >
-                      Eliminar definitivamente
+                      {t("deletedForeverTrash")}
                     </button>
                   </div>
                 </li>
@@ -62,7 +64,7 @@ export function TrashScreen({ appStore, db, onBack }: { appStore: AppStore; db: 
             })}
           </ul>
           <button className="link-button link-button--danger" onClick={handleEmpty}>
-            Vaciar papelera
+            {t("emptyTrash")}
           </button>
         </>
       )}

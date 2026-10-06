@@ -12,6 +12,7 @@ import { TrashScreen } from "./TrashScreen.js";
 import { HistoryScreen } from "./HistoryScreen.js";
 import { AtsScreen } from "./AtsScreen.js";
 import { sortAlpha } from "../sortAlpha.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 type View =
   | { type: "home" }
@@ -32,6 +33,7 @@ type View =
  */
 export function Dashboard({ appStore, db }: { appStore: AppStore; db: AppDatabase }) {
   const [view, setView] = useState<View>({ type: "home" });
+  const { t } = useUILanguage();
 
   if (view.type === "section") {
     const section = db.sections.find((s) => s.id === view.sectionId);
@@ -168,29 +170,29 @@ export function Dashboard({ appStore, db }: { appStore: AppStore; db: AppDatabas
         <div className="dashboard__utility-links">
           <h1>Create Versionate CVs</h1>
           <button className="link-button" onClick={() => setView({ type: "trash" })}>
-            Papelera{db.trash.length > 0 ? ` (${db.trash.length})` : ""}
+            {t("trashLabel")}{db.trash.length > 0 ? ` (${db.trash.length})` : ""}
           </button>
           <button className="link-button" onClick={() => setView({ type: "history" })}>
-            Historial
+            {t("historyLabel")}
           </button>
           {db.history.length > 0 && (
             <button className="link-button link-button--danger" onClick={handleClearHistory}>
-              Borrar historial
+              {t("clearHistory")}
             </button>
           )}
           <button className="link-button" onClick={handleExportJson}>
-            Exportar JSON
+            {t("exportJson")}
           </button>
           <label className="link-button dashboard__import-label">
-            Importar JSON
+            {t("importJson")}
             <input type="file" accept="application/json" onChange={handleImportJsonFile} hidden />
           </label>
         </div>
       </div>
 
-      <h2 className="dashboard__section-heading dashboard__section-heading--preserve-case">CVs</h2>
+      <h2 className="dashboard__section-heading dashboard__section-heading--preserve-case">{t("cvsSection")}</h2>
       {db.cvProjects.length === 0 ? (
-        <p className="empty-state">Todavía no has creado ningún CV.</p>
+        <p className="empty-state">{t("noCvsYet")}</p>
       ) : (
         <ul className="cv-list">
           {db.cvProjects.map((project) => {
@@ -227,19 +229,19 @@ export function Dashboard({ appStore, db }: { appStore: AppStore; db: AppDatabas
       )}
       <div className="dashboard__actions">
         <button className="primary-button" onClick={handleCreateCv}>
-          + Nuevo CV
+          {t("newCv")}
         </button>
         <button className="secondary-button" onClick={() => setView({ type: "job-match" })}>
-          Crear CV a partir de una oferta
+          {t("cvFromOffer")}
         </button>
         <button className="secondary-button" onClick={() => setView({ type: "pdf-import" })}>
-          Importar CV desde PDF
+          {t("importPdf")}
         </button>
       </div>
 
-      <h2 className="dashboard__section-heading">Templates</h2>
+      <h2 className="dashboard__section-heading">{t("templatesSection")}</h2>
       {db.templates.length === 0 ? (
-        <p className="empty-state">Todavía no hay ninguna template (se crea una automáticamente al crear un CV).</p>
+        <p className="empty-state">{t("noTemplatesYet")}</p>
       ) : (
         <ul className="cv-list">
           {db.templates.map((template) => (
@@ -255,10 +257,10 @@ export function Dashboard({ appStore, db }: { appStore: AppStore; db: AppDatabas
         </ul>
       )}
       <button className="secondary-button" onClick={handleCreateTemplate}>
-        + Nueva template
+        + {t("newTemplate")}
       </button>
 
-      <h2 className="dashboard__section-heading">Base de datos</h2>
+      <h2 className="dashboard__section-heading">{t("databaseSection")}</h2>
       <ul className="section-list">
         {sortedSections.map((section) => {
           const elementCount = db.elements.filter((e) => e.sectionId === section.id).length;

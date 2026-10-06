@@ -9,6 +9,7 @@ import {
   type ScoreCategory,
   type JobMatchResult,
 } from "../../../domain/jobMatching.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 /**
  * "Crear CV a partir de una oferta de trabajo" (petición explícita), con
@@ -77,6 +78,7 @@ export function JobMatchScreen({
   onBack: () => void;
   onCreated: (projectId: string) => void;
 }) {
+  const { t } = useUILanguage();
   const [jobDescriptionText, setJobDescriptionText] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [maxItemsPerSection, setMaxItemsPerSection] = useState(DEFAULT_MAX_ITEMS);
@@ -158,19 +160,16 @@ export function JobMatchScreen({
         <button className="link-button" onClick={onBack}>
           ← Volver
         </button>
-        <h1>Crear CV a partir de una oferta de trabajo</h1>
+        <h1>{t("jobMatchCreateFromOffer")}</h1>
         <p className="job-match__subtitle">
-          Pega el texto de la oferta. Se compara contra tu base de datos y se propone qué secciones,
-          proyectos y experiencias incluyen las mejores coincidencias — sin crear ninguna variante
-          nueva, solo eligiendo entre lo que ya tienes. En la siguiente pantalla podrás ver por qué se
-          eligió cada cosa y ajustarlo antes de crear el CV.
+          {t("jobMatchPasteInstructions")}
         </p>
 
         <textarea
           className="job-match__textarea"
           value={jobDescriptionText}
           onChange={(e) => setJobDescriptionText(e.target.value)}
-          placeholder="Pega aquí el texto completo de la oferta de trabajo…"
+          placeholder={t("jobMatchPastePlaceholder")}
           rows={16}
         />
 

@@ -10,6 +10,7 @@ import {
   suggestImprovements,
   type ScoreCategory,
 } from "../../../domain/jobMatching.js";
+import { useUILanguage } from "../UILanguageContext.js";
 
 const CATEGORY_LABELS: Record<ScoreCategory, string> = {
   education: "Educación",
@@ -32,6 +33,7 @@ export function AtsScreen({
   cvVersionId: string;
   onBack: () => void;
 }) {
+  const { t } = useUILanguage();
   const [jobDescription, setJobDescription] = useState(() => {
     const version = db.cvVersions.find((v) => v.id === cvVersionId);
     return extractStoredJobDescription(version?.metadata.notes) ?? "";
@@ -58,18 +60,17 @@ export function AtsScreen({
   return (
     <main className="ats-screen">
       <button className="link-button" onClick={onBack}>
-        ← Volver
+        {t("back")}
       </button>
-      <h1>Análisis ATS</h1>
+      <h1>{t("atsScreenTitle")}</h1>
       <p className="ats-screen__subtitle">
-        Análisis completamente local y basado en reglas fijas, sin IA — nada de esto sale de tu
-        navegador.
+        {t("atsScreenSubtitle")}
       </p>
 
       <section className="ats-section">
-        <h2>Estructura</h2>
+        <h2>{t("atsStructure")}</h2>
         {report.duplicateMessages.length === 0 ? (
-          <p className="ats-check ats-check--ok">✓ Ningún elemento se repite entre secciones.</p>
+          <p className="ats-check ats-check--ok">{t("atsDuplicateMessagesOk")}</p>
         ) : (
           report.duplicateMessages.map((msg, i) => (
             <p key={i} className="ats-check ats-check--warning">
@@ -80,119 +81,114 @@ export function AtsScreen({
       </section>
 
       <section className="ats-section">
-        <h2>Tipografía y contraste</h2>
+        <h2>{t("atsTypographyContrast")}</h2>
         {report.templateMissing ? (
-          <p className="ats-check ats-check--warning">⚠ Esta versión no tiene una template válida.</p>
+          <p className="ats-check ats-check--warning">{t("atsTypographyContrastNoTemplate")}</p>
         ) : (
           <>
             <p className={`ats-check ${report.contrast.passesAA ? "ats-check--ok" : "ats-check--warning"}`}>
-              {report.contrast.passesAA ? "✓" : "⚠"} Contraste de texto: {report.contrast.ratio}:1
-              {report.contrast.passesAA ? " (cumple WCAG AA)" : " (por debajo del mínimo recomendado, 4.5:1)"}
+              {report.contrast.passesAA ? "✓" : "⚠"} {t("atsTypographyContrastRatio")}: {report.contrast.ratio}:1
+              {report.contrast.passesAA ? t("atsTypographyContrastPassesAA") : t("atsTypographyContrastFailsAA")}
             </p>
             {report.fontSize.tooSmall ? (
               <p className="ats-check ats-check--warning">⚠ {report.fontSize.recommendation}</p>
             ) : (
-              <p className="ats-check ats-check--ok">✓ Tamaño de letra razonable.</p>
+              <p className="ats-check ats-check--ok">{t("atsTypographyContrastFontSizeOk")}</p>
             )}
           </>
         )}
       </section>
 
       <section className="ats-section">
-        <h2>Diseño</h2>
+        <h2>{t("atsDesign")}</h2>
         {report.columnLayoutRisk.atRisk ? (
           <p className="ats-check ats-check--warning">⚠ {report.columnLayoutRisk.message}</p>
         ) : (
-          <p className="ats-check ats-check--ok">✓ No se ha detectado contenido dispuesto en columnas.</p>
+          <p className="ats-check ats-check--ok">{t("atsDesignColumnLayoutOk")}</p>
         )}
         <p className="ats-check ats-check--ok">✓ {report.iconRisk.message}</p>
       </section>
 
       <section className="ats-section">
-        <h2>Longitud</h2>
+        <h2>{t("atsLength")}</h2>
         <p className={`ats-check ${report.length.withinRecommendation ? "ats-check--ok" : "ats-check--warning"}`}>
           {report.length.withinRecommendation ? "✓" : "⚠"} {report.length.message}
         </p>
         <p className="ats-screen__hint">
-          La estimación de páginas se basa en la cantidad de texto extraído, no en una medición real del
-          documento paginado — orientativa, no exacta.
+          {t("atsLengthHint")}
         </p>
       </section>
 
       <section className="ats-section">
-        <h2>Fechas</h2>
+        <h2>{t("atsDates")}</h2>
         {report.dateFormatConsistency.consistent ? (
-          <p className="ats-check ats-check--ok">✓ Formato de fecha consistente en todo el CV.</p>
+          <p className="ats-check ats-check--ok">{t("atsDatesConsistentOk")}</p>
         ) : (
           <p className="ats-check ats-check--warning">
-            ⚠ Se mezclan varios formatos de fecha: {report.dateFormatConsistency.formatsUsed.map((f) => f.label).join(", ")}.
-            Unifica el formato para que se vea más cuidado.
+            {t("atsDatesInconsistentWarningStart")}{report.dateFormatConsistency.formatsUsed.map((f) => f.label).join(", ")} {t("atsDatesInconsistentWarningEnd")}
           </p>
         )}
       </section>
 
       <section className="ats-section">
-        <h2>Redacción de viñetas</h2>
+        <h2>{t("atsBullets")}</h2>
         {report.actionVerbs.totalBullets === 0 ? (
-          <p className="ats-check ats-check--ok">✓ Este CV no usa viñetas todavía.</p>
+          <p className="ats-check ats-check--ok">{t("atsActionVerbsNone")}</p>
         ) : (
           <p className={`ats-check ${report.actionVerbs.ratio >= 0.6 ? "ats-check--ok" : "ats-check--warning"}`}>
-            {report.actionVerbs.ratio >= 0.6 ? "✓" : "⚠"} {report.actionVerbs.bulletsWithActionVerb} de{" "}
-            {report.actionVerbs.totalBullets} viñetas empiezan por un verbo de acción reconocido (
+            {report.actionVerbs.ratio >= 0.6 ? "✓" : "⚠"} {report.actionVerbs.bulletsWithActionVerb}/{" "}
+            {report.actionVerbs.totalBullets} {t("atsActionVerbsDescription")} (
             {Math.round(report.actionVerbs.ratio * 100)}%).
           </p>
         )}
         {report.bulletLength.tooShort.length > 0 && (
           <p className="ats-check ats-check--warning">
-            ⚠ {report.bulletLength.tooShort.length} viñeta(s) parecen demasiado cortas (menos de 4 palabras).
+            ⚠ {report.bulletLength.tooShort.length} {t("atsBulletLengthTooShortWarning")}
           </p>
         )}
         {report.bulletLength.tooLong.length > 0 && (
           <p className="ats-check ats-check--warning">
-            ⚠ {report.bulletLength.tooLong.length} viñeta(s) son muy largas (más de 30 palabras) — cuestan de leer de un vistazo.
+            ⚠ {report.bulletLength.tooLong.length} {t("atsBulletLengthTooLongWarning")}
           </p>
         )}
         {report.bulletLength.tooShort.length === 0 && report.bulletLength.tooLong.length === 0 && report.actionVerbs.totalBullets > 0 && (
-          <p className="ats-check ats-check--ok">✓ Longitud de las viñetas razonable.</p>
+          <p className="ats-check ats-check--ok">{t("atsBulletLengthOk")}</p>
         )}
       </section>
 
       <section className="ats-section">
-        <h2>Cobertura de secciones</h2>
+        <h2>{t("atsSectionCoverage")}</h2>
         {report.missingSections.length === 0 ? (
-          <p className="ats-check ats-check--ok">✓ Experience, Education y Skills tienen contenido.</p>
+          <p className="ats-check ats-check--ok">{t("atsSectionCoverageOk")}</p>
         ) : (
           report.missingSections.map((m) => (
             <p key={m.key} className="ats-check ats-check--warning">
-              ⚠ No hay contenido en "{m.label}" en este CV.
+              {t("atsSectionCoverageWarningStart")}{m.label}{t("atsSectionCoverageWarningEnd")}
             </p>
           ))
         )}
       </section>
 
       <section className="ats-section">
-        <h2>Densidad de palabras clave</h2>
+        <h2>{t("atsKeywordDensity")}</h2>
         {report.keywordStuffing.length === 0 ? (
-          <p className="ats-check ats-check--ok">✓ Ninguna palabra se repite de forma sospechosa.</p>
+          <p className="ats-check ats-check--ok">{t("atsKeywordDensityOk")}</p>
         ) : (
           report.keywordStuffing.map((f) => (
             <p key={f.term} className="ats-check ats-check--warning">
-              ⚠ "{f.term}" aparece {f.count} veces ({f.percentOfWords}% del texto) — puede parecer repetición
-              artificial de keywords.
+              ⚠ "{f.term}" {t("atsKeywordDensityWarningAppears")} {f.count} {t("atsKeywordDensityWarningTimesStart")} {f.percentOfWords} {t("atsKeywordDensityWarningTimesEnd")}
             </p>
           ))
         )}
       </section>
 
       <section className="ats-section">
-        <h2>Comprobaciones ortotipográficas</h2>
+        <h2>{t("atsOrthotypographic")}</h2>
         <p className="ats-screen__hint">
-          Esto detecta errores de formato (espacios dobles, palabras repetidas, puntuación pegada...)
-          con reglas fijas, no gramática real — comprobar concordancia o tiempos verbales de verdad
-          necesitaría un modelo de lenguaje, y el analizador ATS funciona sin IA a propósito.
+          {t("atsOrthotypographicHint")}
         </p>
         {proofreadingIssues.length === 0 ? (
-          <p className="ats-check ats-check--ok">✓ No se ha detectado ningún error tipográfico común.</p>
+          <p className="ats-check ats-check--ok">{t("atsOrthotypographicOk")}</p>
         ) : (
           proofreadingIssues.map((issue, i) => (
             <p key={i} className="ats-check ats-check--warning">
@@ -206,13 +202,12 @@ export function AtsScreen({
         <h2>Comparar con una oferta de trabajo</h2>
         {wasAutoFilled && (
           <p className="empty-state">
-            Este CV se generó a partir de una oferta — se ha rellenado automáticamente con ese mismo
-            texto. Puedes cambiarlo si quieres comparar con otra.
+            {t("atsJobOfferAutoFilledNotice")}
           </p>
         )}
         <textarea
           rows={8}
-          placeholder="Pega aquí el texto de la oferta de trabajo…"
+          placeholder={t("atsJobOfferPlaceholder")}
           value={jobDescription}
           onChange={(e) => setJobDescription(e.target.value)}
         />
@@ -222,16 +217,16 @@ export function AtsScreen({
             <div className="ats-match-score">
               <div className="ats-match-score__number">{comparison.matchScore}%</div>
               <div>
-                <div className="ats-match-score__label">Correspondencia con la oferta</div>
+                <div className="ats-match-score__label">{t("atsMatchScoreLabel")}</div>
                 <div className="ats-match-score__hint">
-                  Qué proporción de las menciones de keywords de la oferta cubre este CV.
+                  {t("atsMatchScoreHint")}
                 </div>
               </div>
             </div>
             <div>
               <h3>Presentes en tu CV ({comparison.presentInCv.length})</h3>
               <div className="ats-keyword-list">
-                {comparison.presentInCv.length === 0 && <span className="empty-state">Ninguna todavía.</span>}
+                {comparison.presentInCv.length === 0 && <span className="empty-state">{t("atsKeywordListNone")}</span>}
                 {comparison.presentInCv.map((k) => (
                   <span key={k.term} className="ats-keyword ats-keyword--present">
                     {k.term} ({k.count})
@@ -242,7 +237,7 @@ export function AtsScreen({
             <div>
               <h3>Ausentes de tu CV ({comparison.missingFromCv.length})</h3>
               <div className="ats-keyword-list">
-                {comparison.missingFromCv.length === 0 && <span className="empty-state">Ninguna — buena señal.</span>}
+                {comparison.missingFromCv.length === 0 && <span className="empty-state">{t("atsMissingKeywordListNone")}</span>}
                 {comparison.missingFromCv.map((k) => (
                   <span key={k.term} className="ats-keyword ats-keyword--missing">
                     {k.term} ({k.count})
@@ -260,7 +255,7 @@ export function AtsScreen({
                       <h4>{CATEGORY_LABELS[category]}</h4>
                       <div className="ats-keyword-list">
                         {cat.present.length === 0 && cat.missing.length === 0 && (
-                          <span className="empty-state">No hay contenido en esta sección todavía.</span>
+                          <span className="empty-state">{t("atsCategoryKeywordListNone")}</span>
                         )}
                         {cat.present.map((k) => (
                           <span key={`present-${k}`} className="ats-keyword ats-keyword--present">

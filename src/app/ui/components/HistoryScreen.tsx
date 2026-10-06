@@ -1,3 +1,4 @@
+import { useUILanguage } from "../UILanguageContext.js";
 import type { AppDatabase } from "../../../domain/model/types.js";
 import { formatTimestampForDisplay } from "../../../domain/formatting.js";
 
@@ -7,17 +8,18 @@ import { formatTimestampForDisplay } from "../../../domain/formatting.js";
  * ayudar a depurar, no un panel de control con acciones.
  */
 export function HistoryScreen({ db, onBack }: { db: AppDatabase; onBack: () => void }) {
+  const { t } = useUILanguage();
   const entries = [...db.history].sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 
   return (
     <main className="history-screen">
       <button className="link-button" onClick={onBack}>
-        ← Volver
+        {t("back")}
       </button>
-      <h1>Historial</h1>
+      <h1>{t("historyTitle")}</h1>
 
       {entries.length === 0 ? (
-        <p className="empty-state">Todavía no hay ningún cambio registrado.</p>
+        <p className="empty-state">{t("historyEmpty")}</p>
       ) : (
         <ul className="history-list">
           {entries.map((entry) => (
