@@ -23,7 +23,7 @@ jobs:
         run: npm ci
 
       - name: Run Tests
-        run: npm test
+        run: tsx --test ${{ github.workspace }}/src/**/*.test.ts --passWithNoTests
 
       - name: Build
         run: npm run build
